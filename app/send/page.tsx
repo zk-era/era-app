@@ -1,0 +1,144 @@
+"use client";
+
+import { AnimatePresence, motion, MotionConfig } from "framer-motion";
+import { useState } from "react";
+import { SEND_TOKENS } from "@/lib/constants/tokens";
+import type { Token } from "@/lib/types/swap";
+import { AddressStep } from "@/components/send/AddressStep";
+import { TokenStep } from "@/components/send/TokenStep";
+import { AmountStep } from "@/components/send/AmountStep";
+import { ConfirmStep } from "@/components/send/ConfirmStep";
+
+type Step = "address" | "token" | "amount" | "confirm";
+
+const STEPS: Step[] = ["address", "token", "amount", "confirm"];
+
+const slideVariants = {
+  enter: (direction: number) => ({ x: direction > 0 ? 40 : -40, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (direction: number) => ({ x: direction > 0 ? -40 : 40, opacity: 0 }),
+};
+
+export default function SendPage() {
+  const [step, setStep] = useState<Step>("address");
+  const [direction, setDirection] = useState(1);
+  const [recipient, setRecipient] = useState("");
+  const [selectedToken, setSelectedToken] = useState<Token>(SEND_TOKENS[0]);
+  const [amount, setAmount] = useState("");
+  const [isUsdMode, setIsUsdMode] = useState(true);
+  const [usedMax, setUsedMax] = useState(false);
+
+  const numericAmount = parseFloat(amount) || 0;
+  const tokenPrice = selectedToken.price ?? 1;
+  const usdValue = isUsdMode ? numericAmount : numericAmount * tokenPrice;
+  const tokenValue = isUsdMode
+    ? tokenPrice > 0 ? numericAmount / tokenPrice : 0
+    : numericAmount;
+
+  const isValidAddress =
+    /^0x[a-fA-F0-9]{40}$/.test(recipient) ||
+    /^[a-zA-Z0-9-]+\.eth$/.test(recipient);
+
+  const truncatedRecipient = recipient.endsWith(".eth")
+    ? recipient
+    : recipient.length > 10
+      ? `${recipient.slice(0, 6)}...${recipient.slice(-4)}`
+      : recipient;
+
+  const goTo = (next: Step) => {
+    setDirection(STEPS.indexOf(next) > STEPS.indexOf(step) ? 1 : -1);
+    setStep(next);
+  };
+
+  const handleUseMax = () => {
+    setUsedMax(true);
+    const balance = selectedToken.balance ?? 0;
+    if (isUsdMode) {
+      setAmount((balance * tokenPrice).toString());
+    } else {
+      setAmount(balance.toString());
+    }
+  };
+
+  const toggleMode = () => {
+    if (numericAmount > 0) {
+      const converted = isUsdMode ? tokenValue : usdValue;
+      setAmount(
+        converted % 1 === 0
+          ? converted.toString()
+          : converted.toFixed(6).replace(/0+$/, "").replace(/\.$/, ""),
+      );
+    }
+    setIsUsdMode(!isUsdMode);
+  };
+
+  return (
+    <MotionConfig transition={{ type: "spring", stiffness: 400, damping: 35 }}>
+      <div className="flex w-full max-w-[400px] flex-col px-4">
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={step}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+          >
+            {step === "address" && (
+              <AddressStep
+                recipient={recipient}
+                onRecipientChange={setRecipient}
+                isValidAddress={isValidAddress}
+                onContinue={() => goTo("token")}
+              />
+            )}
+
+            {step === "token" && (
+              <TokenStep
+                tokens={SEND_TOKENS}
+                truncatedRecipient={truncatedRecipient}
+                onSelectToken={(token) => {
+                  setSelectedToken(token);
+                  setAmount("");
+                  setUsedMax(false);
+                  goTo("amount");
+                }}
+                onBack={() => goTo("address")}
+              />
+            )}
+
+            {step === "amount" && (
+              <AmountStep
+                selectedToken={selectedToken}
+                truncatedRecipient={truncatedRecipient}
+                amount={amount}
+                isUsdMode={isUsdMode}
+                numericAmount={numericAmount}
+                usdValue={usdValue}
+                tokenValue={tokenValue}
+                onAmountChange={setAmount}
+                onToggleMode={toggleMode}
+                onUseMax={handleUseMax}
+                onReview={() => goTo("confirm")}
+                onBack={() => goTo("token")}
+              />
+            )}
+
+            {step === "confirm" && (
+              <ConfirmStep
+                selectedToken={selectedToken}
+                truncatedRecipient={truncatedRecipient}
+                numericAmount={numericAmount}
+                isUsdMode={isUsdMode}
+                tokenValue={tokenValue}
+                usedMax={usedMax}
+                onEditAmount={() => goTo("amount")}
+                onConfirm={() => {}}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </MotionConfig>
+  );
+}
