@@ -5,12 +5,14 @@ import { ArrowRight, X } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
+import type { RecentSend } from "@/lib/hooks/useRecentSends";
 
 interface AddressStepProps {
   recipient: string;
   onRecipientChange: (value: string) => void;
   isValidAddress: boolean;
   onContinue: () => void;
+  recentSends: RecentSend[];
 }
 
 export function AddressStep({
@@ -18,6 +20,7 @@ export function AddressStep({
   onRecipientChange,
   isValidAddress,
   onContinue,
+  recentSends,
 }: AddressStepProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -65,6 +68,39 @@ export function AddressStep({
           Paste
         </button>
       </div>
+
+      {recentSends.length > 0 && !recipient && (
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-medium text-[#7b7b7b]">Recent</span>
+          <div className="flex flex-col gap-1">
+            {recentSends.map((recent) => (
+              <button
+                key={recent.address}
+                onClick={() => onRecipientChange(recent.ensName || recent.address)}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[#1a1a1a]"
+              >
+                <div className="flex size-8 items-center justify-center rounded-full bg-[#222] text-xs font-semibold">
+                  {(recent.ensName || recent.address).slice(0, 2)}
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  {recent.ensName ? (
+                    <>
+                      <p className="truncate text-sm font-medium">{recent.ensName}</p>
+                      <p className="truncate text-xs text-[#7b7b7b]">
+                        {recent.address.slice(0, 6)}...{recent.address.slice(-4)}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="truncate text-sm font-medium">
+                      {recent.address.slice(0, 6)}...{recent.address.slice(-4)}
+                    </p>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <motion.button
         onClick={() => isValidAddress && onContinue()}

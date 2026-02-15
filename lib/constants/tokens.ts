@@ -98,8 +98,6 @@ export const SEPOLIA_TOKENS: Record<string, Token> = {
     decimals: 6,
     chainId: 11155111,
     logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
-    balance: 20.0,
-    price: 1.0,
   },
   EURC: {
     address: "0x08210F9170F89Ab7658F0B5E3fF39b0E03C594D4",
@@ -108,12 +106,10 @@ export const SEPOLIA_TOKENS: Record<string, Token> = {
     decimals: 6,
     chainId: 11155111,
     logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x1aBaEA1f7C830bD89Acc67eC4af516284b1bC33c/logo.png",
-    balance: 15.0,
-    price: 1.08,
   },
 };
 
-export const SEND_TOKENS = [SEPOLIA_TOKENS.USDC, SEPOLIA_TOKENS.EURC];
+
 
 /**
  * Get token by symbol for the current chain
