@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import Image from "next/image";
 import Link from "next/link";
+import { Web3Provider } from "@/components/Web3Provider";
+import { WalletButton } from "@/components/WalletButton";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -56,18 +58,23 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${openRunde.variable} antialiased h-full font-open-runde bg-[#131313] text-white`}
       >
-        <Link href="/" className="fixed left-6 top-6 z-50 transition-opacity hover:opacity-80">
-          <Image
-            src="/era-logo.svg"
-            alt="ERA Protocol"
-            width={24}
-            height={24}
-            priority
-          />
-        </Link>
-        <div className="flex h-full w-full items-center justify-center">
-          {children}
-        </div>
+        <Web3Provider>
+          <Link href="/" className="fixed left-6 top-6 z-50 transition-opacity hover:opacity-80">
+            <Image
+              src="/era-logo.svg"
+              alt="ERA Protocol"
+              width={24}
+              height={24}
+              priority
+            />
+          </Link>
+          <div className="fixed right-6 top-6 z-50">
+            <WalletButton />
+          </div>
+          <div className="flex h-full w-full items-center justify-center">
+            {children}
+          </div>
+        </Web3Provider>
       </body>
     </html>
   );
