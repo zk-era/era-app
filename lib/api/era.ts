@@ -88,6 +88,8 @@ export interface POCEstimate {
   savingsPercent: number;
   gasPriceGwei: string;
   ethPriceUsd: number;
+  directL1Gas: number;
+  eraGasPerTx: number;
 }
 
 class ERAApiClient {
