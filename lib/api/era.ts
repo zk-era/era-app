@@ -12,6 +12,8 @@ export interface POCSubmitRequest {
   amount: string;
   signature: string;
   chainId: number;
+  nonce: number;
+  deadline: number;
 }
 
 export interface POCSubmitResponse {

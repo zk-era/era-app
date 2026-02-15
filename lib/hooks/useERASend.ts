@@ -151,7 +151,7 @@ export function useERASend(): UseERASendResult {
         });
         console.log("[ERA] Signature obtained");
 
-        // Step 5: Submit to ERA backend
+        // Step 5: Submit to ERA backend (include the exact values we signed)
         setStatus("submitting");
         const submitResponse = await eraApi.submitTransaction({
           from: address,
@@ -160,6 +160,8 @@ export function useERASend(): UseERASendResult {
           amount: amountInSmallestUnit.toString(),
           signature,
           chainId,
+          nonce,
+          deadline: Number(deadline),
         });
 
         // Step 6: Poll for status updates
