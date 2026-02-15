@@ -14,7 +14,9 @@ interface StatusStepProps {
 }
 
 const STEPS = [
-  { key: "signing", label: "Signing transaction" },
+  { key: "checking_allowance", label: "Checking token allowance" },
+  { key: "approving", label: "Approving token spend" },
+  { key: "signing", label: "Signing transfer intent" },
   { key: "submitting", label: "Submitting to ERA" },
   { key: "fetching_padding", label: "Fetching batch transactions" },
   { key: "building_batch", label: "Building batch" },
@@ -23,23 +25,25 @@ const STEPS = [
 ] as const;
 
 function getActiveStepIndex(sendStatus: SendStatus, jobStatus: POCJobStatus | null): number {
-  if (sendStatus === "signing") return 0;
-  if (sendStatus === "submitting") return 1;
-  if (!jobStatus) return 1;
+  if (sendStatus === "checking_allowance") return 0;
+  if (sendStatus === "approving") return 1;
+  if (sendStatus === "signing") return 2;
+  if (sendStatus === "submitting") return 3;
+  if (!jobStatus) return 3;
 
   switch (jobStatus.status) {
     case "pending":
-      return 1;
-    case "fetching_padding":
-      return 2;
-    case "building_batch":
       return 3;
-    case "generating_proof":
+    case "fetching_padding":
       return 4;
+    case "building_batch":
+      return 5;
+    case "generating_proof":
+      return 6;
     case "settling":
-      return 5;
+      return 7;
     default:
-      return 5;
+      return 7;
   }
 }
 

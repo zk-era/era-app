@@ -168,10 +168,12 @@ export default function SendPage() {
                   addRecentSend(address, ensName);
                   
                   // Execute ERA transaction
+                  // Format tokenValue to max token decimals to avoid float precision issues
+                  const formattedAmount = tokenValue.toFixed(selectedToken.decimals);
                   send({
                     to: recipient,
                     token: selectedToken.address,
-                    amount: tokenValue.toString(),
+                    amount: formattedAmount,
                     decimals: selectedToken.decimals,
                   });
                 }}

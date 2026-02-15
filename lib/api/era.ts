@@ -135,6 +135,14 @@ class ERAApiClient {
   }
 
   /**
+   * Get the current nonce for an address (for EIP-712 signing)
+   */
+  async getNonce(address: string): Promise<number> {
+    const response = await this.fetch<{ nonce: number }>(`/v1/poc/nonce/${address}`);
+    return response.nonce;
+  }
+
+  /**
    * Submit a transaction for POC batching, proving, and settlement
    */
   async submitTransaction(request: POCSubmitRequest): Promise<POCSubmitResponse> {
