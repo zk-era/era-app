@@ -14,6 +14,7 @@ export interface POCSubmitRequest {
   chainId: number;
   nonce: number;
   deadline: number;
+  batchSize: number;
 }
 
 export interface POCSubmitResponse {
@@ -132,10 +133,10 @@ class ERAApiClient {
   }
 
   /**
-   * Get live gas cost estimates
+   * Get live gas cost estimates for a given batch size
    */
-  async getEstimate(): Promise<POCEstimate> {
-    return this.fetch<POCEstimate>("/v1/poc/estimate");
+  async getEstimate(batchSize: number = 20): Promise<POCEstimate> {
+    return this.fetch<POCEstimate>(`/v1/poc/estimate?batchSize=${batchSize}`);
   }
 
   /**

@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { CircleCheck, Loader2 } from "lucide-react";
+import { ChevronDown, CircleCheck, Loader2 } from "lucide-react";
 import Image from "next/image";
 import type { Token } from "@/lib/types/swap";
 import { eraApi, type POCEstimate } from "@/lib/api/era";
+
+const BATCH_SIZE_OPTIONS = [20, 50, 100] as const;
+type BatchSize = (typeof BATCH_SIZE_OPTIONS)[number];
 
 interface ConfirmStepProps {
   selectedToken: Token;
@@ -14,6 +17,8 @@ interface ConfirmStepProps {
   isUsdMode: boolean;
   tokenValue: number;
   usedMax: boolean;
+  batchSize: BatchSize;
+  onBatchSizeChange: (size: BatchSize) => void;
   onEditAmount: () => void;
   onConfirm: () => void;
 }
@@ -25,19 +30,23 @@ export function ConfirmStep({
   isUsdMode,
   tokenValue,
   usedMax,
+  batchSize,
+  onBatchSizeChange,
   onEditAmount,
   onConfirm,
 }: ConfirmStepProps) {
   const [estimate, setEstimate] = useState<POCEstimate | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     eraApi
-      .getEstimate()
+      .getEstimate(batchSize)
       .then(setEstimate)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [batchSize]);
 
   const totalUsd = isUsdMode
     ? numericAmount
@@ -141,6 +150,44 @@ export function ConfirmStep({
             Unable to fetch estimates
           </div>
         )}
+      </div>
+
+      {/* Batch Size Selector */}
+      <div className="relative">
+        <button
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+          className="flex w-full items-center justify-between rounded-xl bg-[#1a1a1a] px-4 py-3 text-sm transition-colors hover:bg-[#222]"
+        >
+          <span className="text-[#7b7b7b]">Batch Size</span>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">{batchSize} transactions</span>
+            <ChevronDown className={`size-4 text-[#7b7b7b] transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+          </div>
+        </button>
+        {dropdownOpen && (
+          <div className="absolute left-0 right-0 top-full z-10 mt-1 overflow-hidden rounded-xl border border-[#303030] bg-[#1a1a1a]">
+            {BATCH_SIZE_OPTIONS.map((size) => (
+              <button
+                key={size}
+                onClick={() => {
+                  onBatchSizeChange(size);
+                  setDropdownOpen(false);
+                }}
+                className={`flex w-full items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-[#252525] ${
+                  size === batchSize ? "bg-[#252525]" : ""
+                }`}
+              >
+                <span>{size} transactions</span>
+                {size === batchSize && (
+                  <span className="text-xs text-green-500">Selected</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+        <p className="mt-2 text-center text-xs text-[#555]">
+          Larger batches = more savings per transaction
+        </p>
       </div>
 
       <p className="text-center text-xs leading-relaxed text-[#555]">

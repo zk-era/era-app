@@ -54,6 +54,7 @@ export interface UseERASendResult {
     token: string;
     amount: string;
     decimals: number;
+    batchSize?: number;
   }) => Promise<void>;
   reset: () => void;
 }
@@ -82,6 +83,7 @@ export function useERASend(): UseERASendResult {
       token: string;
       amount: string;
       decimals: number;
+      batchSize?: number;
     }) => {
       if (!address || !chainId || !publicClient || !walletClient) {
         setError("Wallet not connected");
@@ -162,6 +164,7 @@ export function useERASend(): UseERASendResult {
           chainId,
           nonce,
           deadline: Number(deadline),
+          batchSize: params.batchSize ?? 20,
         });
 
         // Step 6: Poll for status updates

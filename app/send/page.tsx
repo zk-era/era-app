@@ -35,6 +35,7 @@ export default function SendPage() {
   const [amount, setAmount] = useState("");
   const [isUsdMode, setIsUsdMode] = useState(true);
   const [usedMax, setUsedMax] = useState(false);
+  const [batchSize, setBatchSize] = useState<20 | 50 | 100>(20);
 
   // Move to status step when sending starts
   useEffect(() => {
@@ -160,6 +161,8 @@ export default function SendPage() {
                 isUsdMode={isUsdMode}
                 tokenValue={tokenValue}
                 usedMax={usedMax}
+                batchSize={batchSize}
+                onBatchSizeChange={setBatchSize}
                 onEditAmount={() => goTo("amount")}
                 onConfirm={() => {
                   // Save recipient to recent sends
@@ -175,6 +178,7 @@ export default function SendPage() {
                     token: selectedToken.address,
                     amount: formattedAmount,
                     decimals: selectedToken.decimals,
+                    batchSize,
                   });
                 }}
               />
