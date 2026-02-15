@@ -79,6 +79,15 @@ export interface POCInfo {
   available: boolean;
 }
 
+export interface POCEstimate {
+  directL1CostUsd: string;
+  eraCostUsd: string;
+  savingsUsd: string;
+  savingsPercent: number;
+  gasPriceGwei: string;
+  ethPriceUsd: number;
+}
+
 class ERAApiClient {
   private baseUrl: string;
   private authToken?: string;
@@ -116,6 +125,13 @@ class ERAApiClient {
    */
   async getInfo(): Promise<POCInfo> {
     return this.fetch<POCInfo>("/v1/poc/info");
+  }
+
+  /**
+   * Get live gas cost estimates
+   */
+  async getEstimate(): Promise<POCEstimate> {
+    return this.fetch<POCEstimate>("/v1/poc/estimate");
   }
 
   /**

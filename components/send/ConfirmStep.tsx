@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, Loader2 } from "lucide-react";
 import Image from "next/image";
 import type { Token } from "@/lib/types/swap";
+import { eraApi, type POCEstimate } from "@/lib/api/era";
 
 interface ConfirmStepProps {
   selectedToken: Token;
@@ -26,6 +28,17 @@ export function ConfirmStep({
   onEditAmount,
   onConfirm,
 }: ConfirmStepProps) {
+  const [estimate, setEstimate] = useState<POCEstimate | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    eraApi
+      .getEstimate()
+      .then(setEstimate)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
   const totalUsd = isUsdMode
     ? numericAmount
     : numericAmount * (selectedToken.price ?? 1);
@@ -95,23 +108,39 @@ export function ConfirmStep({
       </div>
 
       <div className="space-y-2 rounded-xl border border-green-500/20 bg-green-500/5 px-4 py-3">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-[#7b7b7b]">Direct L1 Gas</span>
-          <span className="font-semibold text-white/70">$5.20</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-[#7b7b7b]">ERA Gas</span>
-          <span className="font-semibold text-green-500">$0.10</span>
-        </div>
-        <div className="border-t border-[#303030]/50 pt-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-white">You Save</span>
-            <div className="text-right">
-              <div className="text-sm font-bold text-green-500">$5.10</div>
-              <div className="text-xs text-green-500/70">98.1% cheaper</div>
-            </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-2">
+            <Loader2 className="size-5 animate-spin text-white/50" />
+            <span className="ml-2 text-sm text-white/50">Fetching estimates...</span>
           </div>
-        </div>
+        ) : estimate ? (
+          <>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-[#7b7b7b]">Direct L1 Transfer</span>
+              <span className="font-semibold text-white/70">${estimate.directL1CostUsd}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-[#7b7b7b]">ERA Batched</span>
+              <span className="font-semibold text-green-500">${estimate.eraCostUsd}</span>
+            </div>
+            <div className="border-t border-[#303030]/50 pt-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-white">Est. Savings</span>
+                <div className="text-right">
+                  <div className="text-sm font-bold text-green-500">${estimate.savingsUsd}</div>
+                  <div className="text-xs text-green-500/70">~{estimate.savingsPercent}% cheaper</div>
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-[#303030]/50 pt-2 text-xs text-[#555]">
+              Gas: {estimate.gasPriceGwei} Gwei · ETH: ${estimate.ethPriceUsd.toLocaleString()}
+            </div>
+          </>
+        ) : (
+          <div className="text-center text-sm text-white/50">
+            Unable to fetch estimates
+          </div>
+        )}
       </div>
 
       <p className="text-center text-xs leading-relaxed text-[#555]">
