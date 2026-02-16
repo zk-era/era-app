@@ -4,30 +4,33 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
+/**
+ * Brand Colors (oklch)
+ * - Send:    oklch(0.789 0.154 211.53) - cyan/teal
+ * - Swap:    oklch(0.714 0.203 305.504) - purple/violet
+ * - Receive: oklch(0.792 0.209 151.711) - green
+ */
 const actions = [
   {
     label: "Send",
     description: "Send tokens to any address or ENS username.",
     href: "/send",
     icon: "/send.svg",
-    gradient: "from-blue-500/20 to-blue-600/5",
-    borderHover: "hover:border-blue-500/30",
+    color: "oklch(0.789 0.154 211.53)",
   },
   {
     label: "Swap",
     description: "Swap your ERC20 tokens at a fraction of the cost.",
     href: "/swap",
     icon: "/swap.svg",
-    gradient: "from-purple-500/20 to-purple-600/5",
-    borderHover: "hover:border-purple-500/30",
+    color: "oklch(0.714 0.203 305.504)",
   },
   {
     label: "Receive",
     description: "Receive Ethereum based tokens through your unique address.",
     href: "/receive",
     icon: "/receive.svg",
-    gradient: "from-green-500/20 to-green-600/5",
-    borderHover: "hover:border-green-500/30",
+    color: "oklch(0.792 0.209 151.711)",
   },
 ];
 
@@ -44,10 +47,23 @@ export default function Home() {
           >
             <Link href={action.href}>
               <div
-                className={`group relative flex items-start gap-4 overflow-hidden rounded-2xl border border-[#303030]/50 px-5 py-5 transition-all duration-300 ${action.borderHover}`}
+                className="group relative flex items-start gap-4 overflow-hidden rounded-2xl border border-[#303030]/50 px-5 py-5 transition-all duration-300"
+                style={{
+                  // @ts-expect-error CSS custom property for hover border color
+                  "--action-color": action.color,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = `color-mix(in oklch, ${action.color} 30%, transparent)`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "";
+                }}
               >
                 <div
-                  className={`absolute inset-0 bg-gradient-to-r ${action.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
+                  className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  style={{
+                    background: `linear-gradient(to right, color-mix(in oklch, ${action.color} 20%, transparent), color-mix(in oklch, ${action.color} 5%, transparent))`,
+                  }}
                 />
                 <div className="relative mt-1 transition-transform duration-300 group-hover:scale-110">
                   <Image

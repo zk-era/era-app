@@ -2,6 +2,7 @@
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Image from "next/image";
+import makeBlockie from "ethereum-blockies-base64";
 
 export function WalletButton() {
   return (
@@ -83,24 +84,14 @@ export function WalletButton() {
                       <span className="text-[#7b7b7b]">{account.displayBalance}</span>
                     )}
                     <div className="flex items-center gap-1.5">
-                      {account.ensAvatar ? (
-                        <Image
-                          alt={account.displayName}
-                          src={account.ensAvatar}
-                          width={20}
-                          height={20}
-                          className="rounded-full"
-                        />
-                      ) : (
-                        <div 
-                          className="flex size-5 items-center justify-center rounded-full text-[10px] font-bold"
-                          style={{ 
-                            background: `linear-gradient(135deg, #${account.address.slice(2, 8)} 0%, #${account.address.slice(-6)} 100%)` 
-                          }}
-                        >
-                          {account.displayName.slice(0, 1)}
-                        </div>
-                      )}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        alt={account.displayName}
+                        src={account.ensAvatar || makeBlockie(account.address)}
+                        width={20}
+                        height={20}
+                        className="rounded-full"
+                      />
                       <span>{account.displayName}</span>
                     </div>
                   </button>

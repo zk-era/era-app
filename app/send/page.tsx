@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import type { Token } from "@/lib/types/swap";
 import { useTokenBalances } from "@/lib/hooks/useTokenBalances";
 import { useRecentSends } from "@/lib/hooks/useRecentSends";
@@ -23,12 +23,24 @@ const slideVariants = {
   exit: (direction: number) => ({ x: direction > 0 ? -40 : 40, opacity: 0 }),
 };
 
+function getEffectiveStep(
+  userStep: Step,
+  sendStatus: string,
+  hasResult: boolean
+): Step {
+  if (sendStatus === "completed" && hasResult) return "result";
+  if (sendStatus === "signing" || sendStatus === "submitting" || sendStatus === "processing") {
+    return "status";
+  }
+  return userStep;
+}
+
 export default function SendPage() {
   const { tokens, isLoading, isConnected } = useTokenBalances();
   const { recentSends, addRecentSend } = useRecentSends();
   const { status: sendStatus, jobStatus, result, error, send, reset } = useERASend();
   
-  const [step, setStep] = useState<Step>("address");
+  const [userStep, setUserStep] = useState<Step>("address");
   const [direction, setDirection] = useState(1);
   const [recipient, setRecipient] = useState("");
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
@@ -37,21 +49,15 @@ export default function SendPage() {
   const [usedMax, setUsedMax] = useState(false);
   const [batchSize, setBatchSize] = useState<20 | 50 | 100>(20);
 
-  // Move to status step when sending starts
-  useEffect(() => {
-    if (sendStatus === "signing" || sendStatus === "submitting" || sendStatus === "processing") {
-      if (step !== "status") {
-        goTo("status");
-      }
-    }
-  }, [sendStatus]);
+  const step = useMemo(
+    () => getEffectiveStep(userStep, sendStatus, !!result),
+    [userStep, sendStatus, result]
+  );
 
-  // Move to result step when completed
-  useEffect(() => {
-    if (sendStatus === "completed" && result) {
-      goTo("result");
-    }
-  }, [sendStatus, result]);
+  const goTo = (next: Step) => {
+    setDirection(STEPS.indexOf(next) > STEPS.indexOf(userStep) ? 1 : -1);
+    setUserStep(next);
+  };
 
   const numericAmount = parseFloat(amount) || 0;
   const tokenPrice = selectedToken?.price ?? 1;
@@ -69,11 +75,6 @@ export default function SendPage() {
     : recipient.length > 10
       ? `${recipient.slice(0, 6)}...${recipient.slice(-4)}`
       : recipient;
-
-  const goTo = (next: Step) => {
-    setDirection(STEPS.indexOf(next) > STEPS.indexOf(step) ? 1 : -1);
-    setStep(next);
-  };
 
   const handleUseMax = () => {
     if (!selectedToken) return;
@@ -156,6 +157,7 @@ export default function SendPage() {
             {step === "confirm" && selectedToken && (
               <ConfirmStep
                 selectedToken={selectedToken}
+                recipient={recipient}
                 truncatedRecipient={truncatedRecipient}
                 numericAmount={numericAmount}
                 isUsdMode={isUsdMode}

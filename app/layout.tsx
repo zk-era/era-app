@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Web3Provider } from "@/components/Web3Provider";
 import { WalletButton } from "@/components/WalletButton";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -48,15 +49,28 @@ export const metadata: Metadata = {
   description: "Ethereum transactions at a fraction of the cost",
 };
 
+/**
+ * Root Layout
+ *
+ * Centering Strategy:
+ * We use `min-h-dvh` (dynamic viewport height) instead of `h-full` for vertical
+ * centering. This is more robust because it doesn't rely on height propagating
+ * through every parent element. Third-party providers like RainbowKitProvider
+ * inject wrapper divs that break the `h-full` chain. Using `min-h-dvh` ensures
+ * the container is always at least viewport height regardless of DOM nesting.
+ *
+ * `dvh` also handles mobile browsers correctly where the viewport height changes
+ * as the address bar shows/hides.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${openRunde.variable} antialiased h-full font-open-runde bg-[#131313] text-white`}
+        className={`${geistSans.variable} ${geistMono.variable} ${openRunde.variable} antialiased font-open-runde bg-[#131313] text-white`}
       >
         <Web3Provider>
           <Link href="/" className="fixed left-6 top-6 z-50 transition-opacity hover:opacity-80">
@@ -71,8 +85,8 @@ export default function RootLayout({
           <div className="fixed right-6 top-6 z-50">
             <WalletButton />
           </div>
-          <div className="flex h-full w-full items-center justify-center">
-            {children}
+          <div className="flex min-h-dvh w-full items-center justify-center">
+            <ErrorBoundary>{children}</ErrorBoundary>
           </div>
         </Web3Provider>
       </body>

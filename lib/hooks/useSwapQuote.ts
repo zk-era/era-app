@@ -14,17 +14,8 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import {
-  getUniswapQuote,
-  toBaseUnits,
-  fromBaseUnits,
-  calculateERASavings,
-} from "@/lib/services/uniswap.service";
-import type {
-  UniswapQuoteRequest,
-  UniswapQuoteResponse,
-  ERAQuoteComparison,
-} from "@/lib/types/swap";
+import { calculateERASavings } from "@/lib/services/uniswap.service";
+import type { UniswapQuoteResponse, ERAQuoteComparison } from "@/lib/types/swap";
 
 interface UseSwapQuoteParams {
   tokenIn: {
@@ -52,10 +43,15 @@ interface UseSwapQuoteResult {
 const DEBOUNCE_MS = 500; // Wait 500ms after user stops typing
 
 export function useSwapQuote({
+  // These params are kept for API compatibility when real quotes are enabled
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   tokenIn,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   tokenOut,
   amount,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   walletAddress,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   chainId = 1,
   enabled = true,
 }: UseSwapQuoteParams): UseSwapQuoteResult {
@@ -109,7 +105,7 @@ export function useSwapQuote({
       setComparison(comparisonData);
       setError(null);
       return;
-    } catch (err) {
+    } catch {
       setError("Failed to calculate quote");
     }
 
@@ -190,26 +186,7 @@ export function useSwapQuote({
       abortControllerRef.current = null;
     }
     */
-  }, [
-    amount,
-    tokenIn.address,
-    tokenIn.decimals,
-    tokenOut.address,
-    tokenOut.decimals,
-  ]);
-
-  /* ORIGINAL DEPENDENCIES - restore when API works
-  }, [
-    enabled,
-    amount,
-    tokenIn.address,
-    tokenIn.decimals,
-    tokenOut.address,
-    tokenOut.decimals,
-    walletAddress,
-    chainId,
-  ]);
-  */
+  }, [enabled, amount]);
 
   // Debounced fetch
   useEffect(() => {
@@ -221,12 +198,13 @@ export function useSwapQuote({
       fetchQuote();
     }, DEBOUNCE_MS);
 
+    const currentAbortController = abortControllerRef.current;
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
+      if (currentAbortController) {
+        currentAbortController.abort();
       }
     };
   }, [fetchQuote]);

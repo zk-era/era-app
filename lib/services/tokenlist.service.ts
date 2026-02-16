@@ -60,13 +60,16 @@ export async function fetch1inchTokenList(chainId: number = 1): Promise<Token[]>
     const data = await response.json();
 
     // 1inch returns object with token addresses as keys
-    const tokens: Token[] = Object.entries(data).map(([address, tokenData]: [string, any]) => ({
-      address,
-      symbol: tokenData.symbol,
-      decimals: tokenData.decimals,
-      chainId,
-      logoURI: tokenData.logoURI,
-    }));
+    const tokens: Token[] = Object.entries(data).map(([address, tokenData]) => {
+      const token = tokenData as { symbol: string; decimals: number; logoURI?: string };
+      return {
+        address,
+        symbol: token.symbol,
+        decimals: token.decimals,
+        chainId,
+        logoURI: token.logoURI,
+      };
+    });
 
     return tokens;
   } catch (error) {

@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { ArrowUpRight, CheckCircle2, Sparkles } from "lucide-react";
-import Link from "next/link";
 import type { POCResult } from "@/lib/api/era";
 
 interface ResultStepProps {

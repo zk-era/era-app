@@ -22,17 +22,8 @@
 
 html,
 body {
-  height: 100%;
   margin: 0;
   padding: 0;
-}
-
-/* Ensure provider wrapper divs maintain height chain */
-body > div,
-body > div > div,
-body > div > div > div,
-body > div > div > div > div {
-  height: 100%;
 }
 
 body {

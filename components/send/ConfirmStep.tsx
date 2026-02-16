@@ -1,9 +1,21 @@
 "use client";
 
+/**
+ * Recipient Avatar Strategy:
+ * Currently using Ethereum blockies for recipient address visualization.
+ * Blockies are deterministic - same address always generates the same pattern,
+ * which helps users visually verify addresses.
+ *
+ * TODO: Add ENS avatar fetching for recipients with ENS names.
+ * This would require calling an ENS resolver to fetch the avatar URL
+ * for addresses that have an ENS name set.
+ */
+
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, CircleCheck, Loader2 } from "lucide-react";
 import Image from "next/image";
+import makeBlockie from "ethereum-blockies-base64";
 import type { Token } from "@/lib/types/swap";
 import { eraApi, type POCEstimate } from "@/lib/api/era";
 
@@ -12,6 +24,7 @@ type BatchSize = (typeof BATCH_SIZE_OPTIONS)[number];
 
 interface ConfirmStepProps {
   selectedToken: Token;
+  recipient: string;
   truncatedRecipient: string;
   numericAmount: number;
   isUsdMode: boolean;
@@ -25,6 +38,7 @@ interface ConfirmStepProps {
 
 export function ConfirmStep({
   selectedToken,
+  recipient,
   truncatedRecipient,
   numericAmount,
   isUsdMode,
@@ -35,17 +49,34 @@ export function ConfirmStep({
   onEditAmount,
   onConfirm,
 }: ConfirmStepProps) {
+  // Generate blockie for recipient (ENS names use the name as seed)
+  const recipientAvatar = recipient.startsWith("0x")
+    ? makeBlockie(recipient)
+    : makeBlockie(recipient.toLowerCase());
   const [estimate, setEstimate] = useState<POCEstimate | null>(null);
   const [loading, setLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
+    
     eraApi
       .getEstimate(batchSize)
-      .then(setEstimate)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      .then((data) => {
+        if (!cancelled) setEstimate(data);
+      })
+      .catch((err) => {
+        if (!cancelled && process.env.NODE_ENV !== "production") {
+          console.error(err);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [batchSize]);
 
   const totalUsd = isUsdMode
@@ -56,9 +87,14 @@ export function ConfirmStep({
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4">
         <div className="relative size-16">
-          <div className="flex size-16 items-center justify-center rounded-full bg-[#1a1a1a] text-2xl font-bold">
-            {truncatedRecipient[0]?.toUpperCase() || "?"}
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={recipientAvatar}
+            alt="Recipient"
+            width={64}
+            height={64}
+            className="rounded-full"
+          />
           <CircleCheck className="absolute -bottom-1 -right-1 size-6 fill-blue-500 text-[#131313]" />
         </div>
         <h1 className="text-2xl font-bold leading-tight">

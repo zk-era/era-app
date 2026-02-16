@@ -3,24 +3,16 @@
 import { useState, useCallback } from "react";
 import { useAccount, useSignTypedData, usePublicClient, useWalletClient } from "wagmi";
 import { eraApi, POCJobStatus, POCResult } from "@/lib/api/era";
-import { parseAbi, encodeFunctionData, maxUint256 } from "viem";
-
-// ERASettlement contract address on Sepolia (with executeVerifiedTransfer)
-const ERA_SETTLEMENT_ADDRESS = "0xC94179E28c3444e1495812AD3a473bB2C4da69c6";
+import { parseAbi, maxUint256 } from "viem";
+import { getContractAddress, getEIP712Domain, isSupportedChain } from "@/lib/web3/contracts";
+import { isValidAddress, isValidAmount } from "@/lib/utils/validation";
+import { logger } from "@/lib/utils/logger";
 
 // Minimal ERC20 ABI for allowance and approve
 const ERC20_ABI = parseAbi([
   "function allowance(address owner, address spender) view returns (uint256)",
   "function approve(address spender, uint256 amount) returns (bool)",
 ]);
-
-// EIP-712 Domain for ERASettlement
-const EIP712_DOMAIN = {
-  name: "ERASettlement",
-  version: "1",
-  chainId: 11155111, // Sepolia
-  verifyingContract: ERA_SETTLEMENT_ADDRESS,
-} as const;
 
 // TransferIntent type for EIP-712 signing
 const TRANSFER_INTENT_TYPES = {
@@ -91,15 +83,40 @@ export function useERASend(): UseERASendResult {
         return;
       }
 
+      if (!isSupportedChain(chainId)) {
+        setError("Unsupported network. Please switch to a supported chain.");
+        setStatus("failed");
+        return;
+      }
+
+      const settlementAddress = getContractAddress(chainId, "settlement");
+      if (!settlementAddress) {
+        setError("Settlement contract not configured for this network");
+        setStatus("failed");
+        return;
+      }
+
+      if (!isValidAddress(params.to)) {
+        setError("Invalid recipient address");
+        setStatus("failed");
+        return;
+      }
+
+      if (!isValidAmount(params.amount)) {
+        setError("Invalid amount");
+        setStatus("failed");
+        return;
+      }
+
       try {
         setError(null);
 
         // Convert amount to smallest unit (e.g., USDC has 6 decimals)
-        console.log("[ERA] Input amount:", params.amount, "decimals:", params.decimals);
+        logger.debug("ERA", "Input amount:", params.amount, "decimals:", params.decimals);
         const [whole, fraction = ""] = params.amount.split(".");
         const paddedFraction = fraction.padEnd(params.decimals, "0").slice(0, params.decimals);
         const amountInSmallestUnit = BigInt(whole + paddedFraction);
-        console.log("[ERA] Converted to smallest unit:", amountInSmallestUnit.toString());
+        logger.debug("ERA", "Converted to smallest unit:", amountInSmallestUnit.toString());
 
         // Step 1: Check token allowance
         setStatus("checking_allowance");
@@ -107,34 +124,35 @@ export function useERASend(): UseERASendResult {
           address: params.token as `0x${string}`,
           abi: ERC20_ABI,
           functionName: "allowance",
-          args: [address, ERA_SETTLEMENT_ADDRESS],
+          args: [address, settlementAddress],
         });
-        console.log("[ERA] Current allowance:", allowance.toString());
+        logger.debug("ERA", "Current allowance:", allowance.toString());
 
         // Step 2: Request approval if needed
         if (allowance < amountInSmallestUnit) {
           setStatus("approving");
-          console.log("[ERA] Requesting token approval...");
+          logger.debug("ERA", "Requesting token approval...");
           
           const hash = await walletClient.writeContract({
             address: params.token as `0x${string}`,
             abi: ERC20_ABI,
             functionName: "approve",
-            args: [ERA_SETTLEMENT_ADDRESS, maxUint256],
+            args: [settlementAddress, maxUint256],
           });
           
-          console.log("[ERA] Approval tx submitted:", hash);
+          logger.debug("ERA", "Approval tx submitted:", hash);
           await publicClient.waitForTransactionReceipt({ hash });
-          console.log("[ERA] Approval confirmed");
+          logger.debug("ERA", "Approval confirmed");
         }
 
         // Step 3: Get nonce from backend/contract
         setStatus("signing");
         const nonce = await eraApi.getNonce(address);
-        console.log("[ERA] Current nonce:", nonce);
+        logger.debug("ERA", "Current nonce:", nonce);
 
         // Step 4: Sign EIP-712 typed data
         const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600); // 1 hour
+        const eip712Domain = getEIP712Domain(chainId, settlementAddress);
         const transferIntent = {
           from: address,
           to: params.to as `0x${string}`,
@@ -144,14 +162,14 @@ export function useERASend(): UseERASendResult {
           deadline,
         };
 
-        console.log("[ERA] Signing transfer intent:", transferIntent);
+        logger.debug("ERA", "Signing transfer intent:", transferIntent);
         const signature = await signTypedDataAsync({
-          domain: EIP712_DOMAIN,
+          domain: eip712Domain,
           types: TRANSFER_INTENT_TYPES,
           primaryType: "TransferIntent",
           message: transferIntent,
         });
-        console.log("[ERA] Signature obtained");
+        logger.debug("ERA", "Signature obtained");
 
         // Step 5: Submit to ERA backend (include the exact values we signed)
         setStatus("submitting");
@@ -185,7 +203,7 @@ export function useERASend(): UseERASendResult {
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Unknown error";
-        console.error("[ERA] Error:", err);
+        logger.error("ERA", "Error:", err);
         setError(errorMessage);
         setStatus("failed");
       }

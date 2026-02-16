@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
+import makeBlockie from "ethereum-blockies-base64";
 import { cn } from "@/lib/utils";
 import type { RecentSend } from "@/lib/hooks/useRecentSends";
 
@@ -79,9 +80,14 @@ export function AddressStep({
                 onClick={() => onRecipientChange(recent.ensName || recent.address)}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[#1a1a1a]"
               >
-                <div className="flex size-8 items-center justify-center rounded-full bg-[#222] text-xs font-semibold">
-                  {(recent.ensName || recent.address).slice(0, 2)}
-                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={makeBlockie(recent.address)}
+                  alt=""
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
                 <div className="flex-1 overflow-hidden">
                   {recent.ensName ? (
                     <>
