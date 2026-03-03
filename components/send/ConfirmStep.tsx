@@ -116,12 +116,19 @@ export function ConfirmStep({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Screen reader announcements for loading states */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {loading && "Loading gas estimate"}
+        {estimate && !loading && `Fee estimate: ${formatGasUsd(estimate.eraCostUsd)}`}
+      </div>
+      
       <div className="flex flex-col gap-4">
         <div className="relative size-16">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={recipientAvatar}
-            alt="Recipient"
+            alt=""
+            aria-hidden="true"
             width={64}
             height={64}
             className="rounded-full"
@@ -131,7 +138,8 @@ export function ConfirmStep({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/verify.svg"
-              alt="Verified"
+              alt=""
+              aria-hidden="true"
               width={20}
               height={20}
             />
@@ -168,7 +176,8 @@ export function ConfirmStep({
             {selectedToken.logoURI && (
               <Image
                 src={selectedToken.logoURI}
-                alt={selectedToken.symbol}
+                alt=""
+                aria-hidden="true"
                 width={20}
                 height={20}
                 className="rounded-full"
@@ -189,7 +198,8 @@ export function ConfirmStep({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={userAvatar}
-                alt="Your wallet"
+                alt=""
+                aria-hidden="true"
                 width={20}
                 height={20}
                 className="rounded-full"
@@ -210,20 +220,52 @@ export function ConfirmStep({
           <div className="relative">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setDropdownOpen(!dropdownOpen);
+                } else if (e.key === 'Escape' && dropdownOpen) {
+                  e.preventDefault();
+                  setDropdownOpen(false);
+                } else if (e.key === 'ArrowDown' && !dropdownOpen) {
+                  e.preventDefault();
+                  setDropdownOpen(true);
+                } else if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && dropdownOpen) {
+                  e.preventDefault();
+                  const currentIndex = BATCH_SIZE_OPTIONS.indexOf(batchSize);
+                  let nextIndex;
+                  if (e.key === 'ArrowDown') {
+                    nextIndex = (currentIndex + 1) % BATCH_SIZE_OPTIONS.length;
+                  } else {
+                    nextIndex = (currentIndex - 1 + BATCH_SIZE_OPTIONS.length) % BATCH_SIZE_OPTIONS.length;
+                  }
+                  setBatchSize(BATCH_SIZE_OPTIONS[nextIndex]);
+                }
+              }}
+              aria-label={`Select batch size, currently ${batchSize}`}
+              aria-expanded={dropdownOpen}
+              aria-haspopup="true"
               className="flex items-center gap-2 rounded-lg bg-[var(--color-background-secondary] px-3 py-1.5 text-sm transition-colors hover:bg-[var(--color-background-tertiary)]"
             >
-              <span className="font-medium text-white/70">{batchSize}</span>
-              <ChevronDown className={`size-3.5 text-[var(--color-era-secondary)] transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+              <span className="font-medium text-white/70" aria-hidden="true">{batchSize}</span>
+              <ChevronDown className={`size-3.5 text-[var(--color-era-secondary)] transition-transform ${dropdownOpen ? "rotate-180" : ""}`} aria-hidden="true" />
             </button>
             {dropdownOpen && (
-              <div className="absolute right-0 top-full z-10 mt-1 min-w-[80px] overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-background-secondary)]">
+              <div 
+                role="menu"
+                aria-label="Batch size options"
+                className="absolute right-0 top-full z-10 mt-1 min-w-[80px] overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-background-secondary)]"
+              >
                 {BATCH_SIZE_OPTIONS.map((size) => (
                   <button
                     key={size}
+                    role="menuitem"
                     onClick={() => {
                       setBatchSize(size);
                       setDropdownOpen(false);
                     }}
+                    aria-label={`Set batch size to ${size}`}
+                    aria-current={size === batchSize ? "true" : undefined}
                     className={`flex w-full items-center justify-center px-4 py-2 text-sm transition-colors hover:bg-[var(--color-background-tertiary)] ${
                       size === batchSize ? "bg-[var(--color-background-tertiary)] text-white font-medium" : "text-white/70"
                     }`}
@@ -240,7 +282,7 @@ export function ConfirmStep({
         <div className="flex items-center justify-between">
           <span className="text-sm text-[var(--color-era-secondary)]">Fee estimate</span>
           {loading ? (
-            <Loader2 className="size-4 animate-spin text-white/50" />
+            <Loader2 className="size-4 animate-spin text-white/50" aria-hidden="true" />
           ) : estimate ? (
             <span className="text-sm font-medium text-white/70">
               {formatGasUsd(estimate.eraCostUsd)}
@@ -261,6 +303,7 @@ export function ConfirmStep({
         <motion.button
           onClick={onEditAmount}
           disabled={isProcessing}
+          aria-label="Go back to edit amount"
           className="flex-1 rounded-[20px] bg-[var(--color-background-secondary)] py-3 text-sm font-semibold transition-colors hover:bg-[var(--color-background-tertiary)] disabled:cursor-not-allowed disabled:opacity-50"
           whileTap={isProcessing ? {} : { scale: 0.98 }}
         >
@@ -269,12 +312,14 @@ export function ConfirmStep({
         <motion.button
           onClick={onConfirm}
           disabled={isProcessing}
+          aria-label={isProcessing ? "Transaction processing, please wait" : `Confirm sending ${tokenValue.toFixed(6)} ${selectedToken.symbol} to ${displayName}`}
+          aria-busy={isProcessing}
           className="flex flex-1 items-center justify-center gap-2 rounded-[20px] bg-white py-3 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
           whileTap={isProcessing ? {} : { scale: 0.98 }}
         >
           {isProcessing ? (
             <>
-              <Loader2 className="size-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
               Processing
             </>
           ) : (

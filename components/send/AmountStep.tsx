@@ -102,6 +102,11 @@ export function AmountStep({
   return (
     <div className="flex flex-col gap-5">
       <SendHeader onBack={onBack} />
+      
+      {/* Screen reader announcements for errors */}
+      <div className="sr-only" role="alert" aria-live="assertive" aria-atomic="true">
+        {isInsufficient && `Insufficient balance. You need ${tokenValue.toFixed(6)} ${selectedToken.symbol} but only have ${balance.toFixed(6)}`}
+      </div>
 
       <Container className="gap-2 rounded-[20px]">
         <span className="text-xs font-medium text-[var(--color-era-secondary)]">To</span>
@@ -119,6 +124,9 @@ export function AmountStep({
             placeholder="0"
             value={amount}
             onChange={handleInputChange}
+            aria-label={`Amount to send in ${isUsdMode ? 'USD' : selectedToken.symbol}`}
+            aria-describedby={isInsufficient ? "amount-error" : undefined}
+            aria-invalid={isInsufficient ? true : undefined}
             className="w-full bg-transparent text-center text-[56px] font-bold tracking-tight text-transparent caret-transparent outline-none"
             autoFocus
           />
@@ -152,6 +160,7 @@ export function AmountStep({
           {isInsufficient ? (
             <motion.p
               key="insufficient"
+              id="amount-error"
               initial={{ opacity: 0, scale: 0 }}
               animate={{
                 opacity: 1,
@@ -176,28 +185,29 @@ export function AmountStep({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0 }}
               onClick={handleToggleMode}
+              aria-label={`Toggle to ${isUsdMode ? selectedToken.symbol : 'USD'} mode`}
               className="flex items-center gap-2 text-sm text-[var(--color-era-secondary] transition-colors hover:text-white)]"
             >
               {isUsdMode ? (
-                <>
+                <span aria-hidden="true">
                   {selectedToken.logoURI && (
                     <Image
                       src={selectedToken.logoURI}
-                      alt={selectedToken.symbol}
+                      alt=""
                       width={16}
                       height={16}
                       className="rounded-full"
                     />
                   )}
                   <NumberFlow value={tokenValue} />
-                </>
+                </span>
               ) : (
-                <>
+                <span aria-hidden="true">
                   <span>$</span>
                   <NumberFlow value={usdValue} />
-                </>
+                </span>
               )}
-              <ArrowDownUp className="size-3.5" />
+              <ArrowDownUp className="size-3.5" aria-hidden="true" />
             </motion.button>
           )}
         </AnimatePresence>
@@ -227,6 +237,13 @@ export function AmountStep({
         </div>
         <button
           onClick={handleUseMax}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleUseMax();
+            }
+          }}
+          aria-label={`Use maximum balance of ${balance.toFixed(6)} ${selectedToken.symbol}`}
           className="rounded-lg bg-[var(--color-background-tertiary] px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-[var(--color-background-elevated)]"
         >
           Use Max
@@ -235,6 +252,14 @@ export function AmountStep({
 
       <motion.button
         onClick={() => numericAmount > 0 && !isInsufficient && onContinue()}
+        disabled={numericAmount === 0 || isInsufficient}
+        aria-label={
+          isInsufficient 
+            ? `Cannot proceed: insufficient ${selectedToken.symbol} balance`
+            : numericAmount > 0 
+              ? "Review transaction"
+              : "Enter an amount to continue"
+        }
         className={cn(
           "flex w-full items-center justify-center rounded-xl py-3 text-sm font-semibold transition-all",
           numericAmount > 0 && !isInsufficient

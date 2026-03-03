@@ -42,24 +42,26 @@ export function TokenSelector({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={`Select token, currently ${selectedToken.symbol}`}
         className="flex items-center gap-3 transition-opacity hover:opacity-80"
       >
         {selectedToken.logoURI ? (
           <Image
             src={selectedToken.logoURI}
-            alt={selectedToken.symbol}
+            alt=""
+            aria-hidden="true"
             width={40}
             height={40}
             className="rounded-full"
           />
         ) : (
-          <div className="flex size-10 items-center justify-center rounded-full bg-[#222] font-semibold">
+          <div className="flex size-10 items-center justify-center rounded-full bg-[#222] font-semibold" aria-hidden="true">
             {selectedToken.symbol[0]}
           </div>
         )}
-        <div className="text-left">
-          <h2 className="text-base font-semibold">{selectedToken.symbol}</h2>
-          <p className="text-sm text-[#7b7b7b]">
+        <div className="text-left" role="none">
+          <h2 className="text-base font-semibold" aria-hidden="true">{selectedToken.symbol}</h2>
+          <p className="text-sm text-[#7b7b7b]" aria-hidden="true">
             {isLoading
               ? "Loading..."
               : subtitle || `111.82 ${selectedToken.symbol}`}
@@ -89,19 +91,21 @@ export function TokenSelector({
                   <h3 className="font-semibold text-white">{label}</h3>
                   <button
                     onClick={() => setIsOpen(false)}
+                    aria-label="Close token selector"
                     className="rounded-lg p-1 transition-colors hover:bg-[#222]"
                   >
-                    <X className="size-4 text-white/50" />
+                    <X className="size-4 text-white/50" aria-hidden="true" />
                   </button>
                 </div>
 
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/50" />
+                  <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/50" aria-hidden="true" />
                   <input
                     type="text"
-                    placeholder="Search name or address"
+                    placeholder="USDC, 0x..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    aria-label="Search tokens by name or address"
                     className="w-full rounded-xl bg-[#222] py-2 pl-10 pr-3 text-sm outline-none placeholder:text-white/30 focus:ring-2 focus:ring-white/10"
                   />
                 </div>
@@ -122,25 +126,27 @@ export function TokenSelector({
                         <button
                           key={token.address}
                           onClick={() => handleSelectToken(token)}
+                          aria-label={`Select ${token.symbol} token, address ${token.address.slice(0, 6)}...${token.address.slice(-4)}${isSelected ? ', currently selected' : ''}`}
                           className={`flex w-full items-center justify-between rounded-xl p-3 transition-colors ${
                             isSelected ? "bg-green-500/10" : "hover:bg-[#222]"
                           }`}
                         >
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3" role="none">
                             {token.logoURI ? (
                               <Image
                                 src={token.logoURI}
-                                alt={token.symbol}
+                                alt=""
+                                aria-hidden="true"
                                 width={32}
                                 height={32}
                                 className="rounded-full"
                               />
                             ) : (
-                              <div className="flex size-8 items-center justify-center rounded-full bg-[#222] text-sm font-semibold">
+                              <div className="flex size-8 items-center justify-center rounded-full bg-[#222] text-sm font-semibold" aria-hidden="true">
                                 {token.symbol[0]}
                               </div>
                             )}
-                            <div className="text-left">
+                            <div className="text-left" aria-hidden="true">
                               <div className="font-semibold text-white">
                                 {token.symbol}
                               </div>
@@ -151,7 +157,7 @@ export function TokenSelector({
                             </div>
                           </div>
                           {isSelected && (
-                            <Check className="size-5 text-green-500" />
+                            <Check className="size-5 text-green-500" aria-hidden="true" />
                           )}
                         </button>
                       );

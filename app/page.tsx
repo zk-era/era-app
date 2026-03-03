@@ -45,7 +45,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + index * 0.1, duration: 0.4 }}
           >
-            <Link href={action.href}>
+            <Link href={action.href} aria-label={`${action.label}: ${action.description}`}>
               <div
                 className="group relative flex items-start gap-4 overflow-hidden rounded-2xl border border-[#303030]/50 px-5 py-5 transition-all duration-300"
                 style={{
@@ -68,12 +68,13 @@ export default function Home() {
                 <div className="relative mt-1 transition-transform duration-300 group-hover:scale-110">
                   <Image
                     src={action.icon}
-                    alt={action.label}
+                    alt=""
+                    aria-hidden="true"
                     width={20}
                     height={20}
                   />
                 </div>
-                <div className="relative flex-1">
+                <div className="relative flex-1" aria-hidden="true">
                   <h2 className="text-lg font-semibold">{action.label}</h2>
                   <p className="text-sm text-[#7b7b7b]">
                     {action.description}

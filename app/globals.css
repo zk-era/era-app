@@ -1,16 +1,56 @@
 @import "tailwindcss";
 
+/**
+ * Accessibility: Screen Reader Only Class
+ * Hides content visually but keeps it available to screen readers
+ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
 @theme inline {
+  /* Base tokens from root */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-open-runde: var(--font-open-runde);
+  
+  /* ERA Design System - Semantic Color Tokens */
+  
+  /* Brand colors */
+  --color-era-primary: #ffffff;
+  --color-era-secondary: #7b7b7b;
+  --color-era-tertiary: #555555;
+  
+  /* Background layers (semantic naming) */
+  --color-background-secondary: #1a1a1a;
+  --color-background-tertiary: #2a2a2a;
+  --color-background-elevated: #333333;
+  
+  /* Border colors */
+  --color-border: #303030;
+  --color-border-hover: #505050;
+  --color-border-active: #606060;
+  
+  /* ERA Border Radius Tokens */
+  --radius-era-sm: 0.5rem;    /* 8px */
+  --radius-era-md: 0.75rem;   /* 12px */
+  --radius-era-lg: 1rem;      /* 16px - our standard */
+  --radius-era-xl: 1.5rem;    /* 24px */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -34,4 +74,41 @@ body {
 
 .font-open-runde {
   font-family: var(--font-open-runde);
+}
+
+/**
+ * Sileo Toast Icon Badge Background Removal
+ * 
+ * By default, Sileo wraps icons in a circular badge container with background.
+ * This removes that background for our custom PulsatingLoader component,
+ * allowing the glowing animation to stand alone without a circular container.
+ * 
+ * Target: [data-sileo-badge] - The official Sileo icon badge element
+ * Reference: https://sileo.aaryan.design/docs/styling
+ */
+[data-sileo-badge] {
+  background: transparent !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  min-width: auto !important;
+  min-height: auto !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+/**
+ * Sileo Error Toast Styling
+ * 
+ * Ensures error toasts have proper spacing and text doesn't overflow.
+ * Adds left padding to error badge for consistency with custom loader.
+ */
+[data-sileo-toast][data-state="error"] [data-sileo-badge] {
+  padding-left: 0.5rem !important;
+}
+
+[data-sileo-toast][data-state="error"] [data-sileo-title] {
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
 }

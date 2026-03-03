@@ -38,24 +38,32 @@ export function AddressListItem({
   return (
     <button
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      aria-label={`Select ${displayName} as recipient`}
       className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[var(--color-background-secondary)]"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={makeBlockie(address)}
         alt=""
+        aria-hidden="true"
         width={40}
         height={40}
         className="rounded-full"
       />
-      <div className="flex-1 overflow-hidden">
-        <p className="truncate text-sm font-semibold text-white">
+      <div className="flex-1 overflow-hidden" role="none">
+        <p className="truncate text-sm font-semibold text-white" aria-hidden="true">
           {displayName}
         </p>
         {isLoading ? (
-          <div className="h-3 w-24 animate-pulse rounded bg-[var(--color-background-secondary)]" />
+          <div className="h-3 w-24 animate-pulse rounded bg-[var(--color-background-secondary)]" aria-hidden="true" />
         ) : (
-          <p className="truncate text-xs text-[var(--color-era-secondary)]">
+          <p className="truncate text-xs text-[var(--color-era-secondary)]" aria-hidden="true">
             {secondaryLabel}
           </p>
         )}

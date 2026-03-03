@@ -3,9 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import Image from "next/image";
 import Link from "next/link";
+import { Toaster } from "sileo";
 import { Web3Provider } from "@/components/Web3Provider";
 import { WalletButton } from "@/components/WalletButton";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Footer } from "@/components/Footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -47,6 +49,14 @@ const openRunde = localFont({
 export const metadata: Metadata = {
   title: "ERA Protocol",
   description: "Ethereum transactions at a fraction of the cost",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
 };
 
 /**
@@ -70,13 +80,24 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${openRunde.variable} antialiased font-open-runde bg-[#131313] text-white`}
+        className={`${geistSans.variable} ${geistMono.variable} ${openRunde.variable} antialiased font-open-runde bg-black text-white`}
       >
         <Web3Provider>
-          <Link href="/" className="fixed left-6 top-6 z-50 transition-opacity hover:opacity-80">
+          <Toaster 
+            position="top-center" 
+            options={{
+              fill: "#1a1a1a",
+              styles: {
+                title: "color: #fff",
+                description: "color: #7b7b7b",
+              },
+            }}
+          />
+          <Link href="/" aria-label="ERA Protocol home" className="fixed left-6 top-6 z-50 transition-opacity hover:opacity-80">
             <Image
               src="/era-logo.svg"
-              alt="ERA Protocol"
+              alt=""
+              aria-hidden="true"
               width={24}
               height={24}
               priority
@@ -85,8 +106,11 @@ export default function RootLayout({
           <div className="fixed right-6 top-6 z-50">
             <WalletButton />
           </div>
-          <div className="flex min-h-dvh w-full items-center justify-center">
-            <ErrorBoundary>{children}</ErrorBoundary>
+          <div className="flex min-h-dvh w-full flex-col">
+            <div className="flex flex-1 items-center justify-center">
+              <ErrorBoundary>{children}</ErrorBoundary>
+            </div>
+            <Footer />
           </div>
         </Web3Provider>
       </body>

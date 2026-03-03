@@ -1,10 +1,14 @@
 "use client";
 
+import { useEffect } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Image from "next/image";
 import makeBlockie from "ethereum-blockies-base64";
+import { useChainInfo } from "@/lib/context/ChainContext";
 
 export function WalletButton() {
+  const { setChainInfo } = useChainInfo();
+
   return (
     <ConnectButton.Custom>
       {({
@@ -17,6 +21,16 @@ export function WalletButton() {
       }) => {
         const ready = mounted;
         const connected = ready && account && chain;
+
+        // Sync chain info to context when available
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        useEffect(() => {
+          if (connected && chain) {
+            setChainInfo(chain.iconUrl, chain.name);
+          } else {
+            setChainInfo(undefined, undefined);
+          }
+        }, [connected, chain]);
 
         return (
           <div
@@ -60,33 +74,37 @@ export function WalletButton() {
                   <button
                     onClick={openChainModal}
                     type="button"
+                    aria-label={`Switch network, currently ${chain.name}`}
                     className="flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-semibold transition-colors hover:bg-[#252525]"
                   >
                     {chain.hasIcon && chain.iconUrl && (
                       <Image
-                        alt={chain.name ?? "Chain"}
+                        alt=""
+                        aria-hidden="true"
                         src={chain.iconUrl}
                         width={18}
                         height={18}
                         className="rounded-full"
                       />
                     )}
-                    <span className="hidden sm:inline">{chain.name}</span>
+                    <span className="hidden sm:inline" aria-hidden="true">{chain.name}</span>
                   </button>
 
                   {/* Account button */}
                   <button
                     onClick={openAccountModal}
                     type="button"
+                    aria-label={`Wallet account ${account.displayName}, balance ${account.displayBalance || 'loading'}`}
                     className="flex items-center gap-2 rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-semibold transition-colors hover:bg-[#252525]"
                   >
                     {account.displayBalance && (
-                      <span className="text-[#7b7b7b]">{account.displayBalance}</span>
+                      <span className="text-[#7b7b7b]" aria-hidden="true">{account.displayBalance}</span>
                     )}
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5" aria-hidden="true">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        alt={account.displayName}
+                        alt=""
+                        aria-hidden="true"
                         src={account.ensAvatar || makeBlockie(account.address)}
                         width={20}
                         height={20}

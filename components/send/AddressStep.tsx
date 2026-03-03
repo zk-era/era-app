@@ -59,13 +59,20 @@ export function AddressStep({
   return (
     <div className="flex flex-col gap-6">
       <SendHeader />
+      
+      {/* Screen reader announcements for loading states */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {isResolving && "Resolving ENS name, please wait"}
+        {resolvedAddress && recipient && !recipient.startsWith("0x") && "ENS name resolved successfully"}
+        {ensError && normalizedName && "ENS name could not be resolved"}
+      </div>
 
       <Container className="gap-2 rounded-[20px]">
         <span className="text-xs font-medium text-[var(--color-era-secondary)]">To</span>
         <input
           ref={inputRef}
           type="text"
-          placeholder="ENS or Address"
+          placeholder="0x... or vitalik.eth"
           value={recipient}
           onChange={(e) => setRecipient(e.target.value)}
           onPaste={(e) => {
@@ -73,6 +80,9 @@ export function AddressStep({
             const text = e.clipboardData.getData("text").trim();
             setRecipient(text);
           }}
+          aria-label="Recipient address or ENS name"
+          aria-describedby={recipient && !isValid ? "address-error" : undefined}
+          aria-invalid={recipient && !isValid ? true : undefined}
           className="flex-1 bg-transparent text-sm font-medium outline-none placeholder:font-medium placeholder:text-[var(--color-era-tertiary)] text-ellipsis overflow-hidden"
           autoFocus
         />
@@ -82,17 +92,33 @@ export function AddressStep({
           // Empty state: Show Paste button (same height as X button)
           <button
             onClick={handlePaste}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handlePaste();
+              }
+            }}
+            aria-label="Paste address from clipboard"
             className="shrink-0 rounded-lg bg-[var(--color-background-tertiary)] px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-[var(--color-background-elevated)]"
           >
             Paste
           </button>
         ) : isResolving ? (
           // Resolving ENS: Show spinner (same size as X button)
-          <InlineLoader size="sm" />
+          <div aria-label="Resolving ENS name" role="status">
+            <InlineLoader size="sm" />
+          </div>
         ) : (
           // Has input: Show X to clear
           <button
             onClick={() => setRecipient("")}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setRecipient("");
+              }
+            }}
+            aria-label="Clear recipient address"
             className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-background-tertiary)] transition-colors hover:bg-[var(--color-background-elevated)]"
           >
             <X className="size-3.5 text-white" />
@@ -130,8 +156,10 @@ export function AddressStep({
 
       {/* Error message - Shows when address is invalid */}
       {recipient && !isValid && (
-        <Container rounded="lg" padding="lg" className="justify-center">
-          <p className="text-sm text-[var(--color-era-secondary)]">Invalid Ethereum address or ENS name</p>
+        <Container rounded="lg" padding="lg" className="justify-center" role="alert">
+          <p id="address-error" className="text-sm text-[var(--color-era-secondary)]">
+            Invalid Ethereum address or ENS name
+          </p>
         </Container>
       )}
 
