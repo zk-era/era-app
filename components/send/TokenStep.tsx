@@ -1,17 +1,26 @@
+/**
+ * Phase 2: Token Selection
+ * User selects which token to send
+ * 
+ * Phase 2 Updates:
+ * - Uses Zustand store for recipient and token state
+ * - Simplified props (recipient comes from store)
+ */
 "use client";
 
 import { motion } from "framer-motion";
-import { X } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import { SendHeader } from "@/components/shared/SendHeader";
+import { RecipientChip } from "@/components/shared/RecipientChip";
+import { Container } from "@/components/ui/container";
+import { useSendStore } from "@/lib/stores/sendStore";
 import type { Token } from "@/lib/types/swap";
 
 interface TokenStepProps {
   tokens: Token[];
   isLoading: boolean;
   isConnected: boolean;
-  truncatedRecipient: string;
-  onSelectToken: (token: Token) => void;
+  onContinue: () => void;
   onBack: () => void;
 }
 
@@ -19,44 +28,53 @@ export function TokenStep({
   tokens,
   isLoading,
   isConnected,
-  truncatedRecipient,
-  onSelectToken,
+  onContinue,
   onBack,
 }: TokenStepProps) {
+  // Zustand store - direct selectors (v5 best practice)
+  const recipient = useSendStore((s) => s.recipient);
+  const resolvedAddress = useSendStore((s) => s.resolvedAddress);
+  const setSelectedToken = useSendStore((s) => s.setSelectedToken);
+  
+  // Use resolved address for blockie, fallback to recipient
+  const displayAddress = resolvedAddress || recipient;
+  
+  // Display logic: show .eth for ENS names, truncate 0x addresses
+  const truncatedRecipient = recipient.startsWith("0x")
+    ? recipient.length > 10
+      ? `${recipient.slice(0, 6)}...${recipient.slice(-4)}`
+      : recipient
+    : recipient.endsWith(".eth")
+      ? recipient
+      : `${recipient}.eth`;
+  
+  const handleSelectToken = (token: Token) => {
+    setSelectedToken(token);
+    onContinue();
+  };
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="text-sm font-medium text-[#7b7b7b] transition-colors hover:text-white"
-        >
-          Back
-        </button>
-        <h1 className="text-lg font-bold">Select Token</h1>
-        <Link
-          href="/"
-          className="rounded-lg p-1 transition-colors hover:bg-[#1a1a1a]"
-        >
-          <X className="size-5 text-[#7b7b7b]" />
-        </Link>
-      </div>
+      <SendHeader onBack={onBack} />
 
-      <div className="flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-3">
-        <span className="text-xs font-medium text-[#7b7b7b]">To</span>
-        <span className="truncate rounded-full bg-[#2a2a2a] px-3 py-1 text-sm font-medium text-white/70">
-          {truncatedRecipient}
-        </span>
-      </div>
+      <Container className="gap-2 rounded-[20px]">
+        <span className="text-xs font-medium text-[var(--color-era-secondary)]">To</span>
+        <RecipientChip 
+          address={displayAddress}
+          displayName={truncatedRecipient}
+          size="sm"
+        />
+      </Container>
 
-      <p className="text-sm text-[#7b7b7b]">
+      <p className="text-sm text-[var(--color-era-secondary)]">
         Which token do you want to send?
       </p>
 
       <div className="flex flex-col gap-3">
         {!isConnected ? (
-          <div className="rounded-xl bg-[#1a1a1a] px-4 py-6 text-center">
-            <p className="text-sm text-[#7b7b7b]">Connect your wallet to see tokens</p>
-          </div>
+          <Container rounded="lg" padding="lg" className="justify-center">
+            <p className="text-sm text-[var(--color-era-secondary)]">Connect your wallet to see tokens</p>
+          </Container>
         ) : isLoading ? (
           <div className="flex flex-col gap-3">
             {[1, 2].map((i) => (
@@ -71,18 +89,18 @@ export function TokenStep({
             ))}
           </div>
         ) : tokens.length === 0 ? (
-          <div className="rounded-xl bg-[#1a1a1a] px-4 py-6 text-center">
-            <p className="text-sm text-[#7b7b7b]">No tokens with balance found</p>
-            <p className="mt-1 text-xs text-[#5b5b5b]">Get testnet USDC from faucet.circle.com</p>
-          </div>
+          <Container rounded="lg" padding="lg" className="flex-col justify-center">
+            <p className="text-sm text-[var(--color-era-secondary)]">No tokens with balance found</p>
+            <p className="mt-1 text-xs text-[var(--color-era-tertiary)]">Get testnet USDC from faucet.circle.com</p>
+          </Container>
         ) : (
           tokens.map((token) => (
             <motion.button
               key={token.symbol}
-              onClick={() => onSelectToken(token)}
+              onClick={() => handleSelectToken(token)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-[#1a1a1a]"
+              className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-[var(--color-background-secondary)]"
             >
               {token.logoURI ? (
                 <Image
@@ -93,13 +111,13 @@ export function TokenStep({
                   className="rounded-full"
                 />
               ) : (
-                <div className="flex size-10 items-center justify-center rounded-full bg-[#222] text-sm font-semibold">
+                <div className="flex size-10 items-center justify-center rounded-full bg-[var(--color-background-secondary] text-sm font-semibold)]">
                   {token.symbol[0]}
                 </div>
               )}
               <div className="flex-1 text-left">
                 <h2 className="text-sm font-semibold">{token.name || token.symbol}</h2>
-                <p className="text-xs text-[#7b7b7b]">
+                <p className="text-xs text-[var(--color-era-secondary)]">
                   {token.balance?.toLocaleString("en-US", { maximumFractionDigits: 6 }) ?? 0} {token.symbol}
                 </p>
               </div>

@@ -1,53 +1,96 @@
+/**
+ * Phase 3: Amount Input
+ * User enters the amount to send (USD or token units)
+ * 
+ * Phase 2 Updates:
+ * - Uses Zustand store for amount, recipient, and token state
+ * - Simplified props (state comes from store)
+ */
 "use client";
 
 import NumberFlow from "@number-flow/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowDownUp, X } from "lucide-react";
+import { ArrowDownUp } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
-import type { Token } from "@/lib/types/swap";
-
-function formatWithCommas(value: string): string {
-  if (!value) return "0";
-  const parts = value.split(".");
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return parts.join(".");
-}
+import { formatWithCommas } from "@/lib/utils/format";
+import { SendHeader } from "@/components/shared/SendHeader";
+import { RecipientChip } from "@/components/shared/RecipientChip";
+import { Container } from "@/components/ui/container";
+import { useSendStore } from "@/lib/stores/sendStore";
 
 interface AmountStepProps {
-  selectedToken: Token;
-  truncatedRecipient: string;
-  amount: string;
-  isUsdMode: boolean;
-  numericAmount: number;
-  usdValue: number;
-  tokenValue: number;
-  onAmountChange: (value: string) => void;
-  onToggleMode: () => void;
-  onUseMax: () => void;
-  onReview: () => void;
+  onContinue: () => void;
   onBack: () => void;
 }
 
 export function AmountStep({
-  selectedToken,
-  truncatedRecipient,
-  amount,
-  isUsdMode,
-  numericAmount,
-  usdValue,
-  tokenValue,
-  onAmountChange,
-  onToggleMode,
-  onUseMax,
-  onReview,
+  onContinue,
   onBack,
 }: AmountStepProps) {
+  // Zustand store - direct selectors (v5 best practice)
+  const recipient = useSendStore((s) => s.recipient);
+  const resolvedAddress = useSendStore((s) => s.resolvedAddress);
+  const selectedToken = useSendStore((s) => s.selectedToken);
+  const amount = useSendStore((s) => s.amount);
+  const isUsdMode = useSendStore((s) => s.isUsdMode);
+  const setAmount = useSendStore((s) => s.setAmount);
+  const setIsUsdMode = useSendStore((s) => s.setIsUsdMode);
+  const setUsedMax = useSendStore((s) => s.setUsedMax);
+  
+  // Early return if no token selected (shouldn't happen but type safety)
+  if (!selectedToken) {
+    return null;
+  }
+  
+  // Display logic for recipient
+  const displayAddress = resolvedAddress || recipient;
+  const truncatedRecipient = recipient.startsWith("0x")
+    ? recipient.length > 10
+      ? `${recipient.slice(0, 6)}...${recipient.slice(-4)}`
+      : recipient
+    : recipient.endsWith(".eth")
+      ? recipient
+      : `${recipient}.eth`;
+  
+  // Amount calculations
+  const numericAmount = parseFloat(amount) || 0;
+  const tokenPrice = selectedToken.price ?? 1;
+  const usdValue = isUsdMode ? numericAmount : numericAmount * tokenPrice;
+  const tokenValue = isUsdMode
+    ? tokenPrice > 0 ? numericAmount / tokenPrice : 0
+    : numericAmount;
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (!/^[0-9]*\.?[0-9]*$/.test(val) && val !== "") return;
-    onAmountChange(val);
+    setAmount(val);
+  };
+  
+  const handleToggleMode = () => {
+    if (numericAmount > 0) {
+      const converted = isUsdMode ? tokenValue : usdValue;
+      setAmount(
+        converted % 1 === 0
+          ? converted.toString()
+          : converted.toFixed(6).replace(/0+$/, "").replace(/\.$/, ""),
+      );
+    }
+    setIsUsdMode(!isUsdMode);
+  };
+  
+  const handleUseMax = () => {
+    setUsedMax(true);
+    const balance = selectedToken.balance ?? 0;
+    if (isUsdMode) {
+      // Format USD to 2 decimals max
+      const usdAmount = balance * tokenPrice;
+      setAmount(usdAmount.toFixed(2));
+    } else {
+      // Format token amount to 6 decimals max, remove trailing zeros
+      const formatted = balance.toFixed(6).replace(/\.?0+$/, "");
+      setAmount(formatted);
+    }
   };
 
   const balance = selectedToken.balance ?? 0;
@@ -58,28 +101,16 @@ export function AmountStep({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="text-sm font-medium text-[#7b7b7b] transition-colors hover:text-white"
-        >
-          Back
-        </button>
-        <h1 className="text-lg font-bold">Send {selectedToken.symbol}</h1>
-        <Link
-          href="/"
-          className="rounded-lg p-1 transition-colors hover:bg-[#1a1a1a]"
-        >
-          <X className="size-5 text-[#7b7b7b]" />
-        </Link>
-      </div>
+      <SendHeader onBack={onBack} />
 
-      <div className="flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-3">
-        <span className="text-xs font-medium text-[#7b7b7b]">To</span>
-        <span className="truncate rounded-full bg-[#2a2a2a] px-3 py-1 text-sm font-medium text-white/70">
-          {truncatedRecipient}
-        </span>
-      </div>
+      <Container className="gap-2 rounded-[20px]">
+        <span className="text-xs font-medium text-[var(--color-era-secondary)]">To</span>
+        <RecipientChip 
+          address={displayAddress}
+          displayName={truncatedRecipient}
+          size="sm"
+        />
+      </Container>
 
       <div className="flex flex-col items-center gap-3 py-8">
         <div className="relative w-full overflow-hidden text-center">
@@ -101,8 +132,8 @@ export function AmountStep({
                       key={`${char}-${index}`}
                       className={cn(
                         "text-[56px] font-bold tracking-tight",
-                        char === "$" && "text-[#7b7b7b]",
-                        isPlaceholder && "text-[#333]",
+                        char === "$" && "text-[var(--color-era-secondary)]",
+                        isPlaceholder && "text-[var(--color-background-elevated)]",
                       )}
                       initial={{ y: "100%", opacity: 0 }}
                       animate={{ y: "0%", opacity: 1 }}
@@ -144,8 +175,8 @@ export function AmountStep({
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0 }}
-              onClick={onToggleMode}
-              className="flex items-center gap-2 text-sm text-[#7b7b7b] transition-colors hover:text-white"
+              onClick={handleToggleMode}
+              className="flex items-center gap-2 text-sm text-[var(--color-era-secondary] transition-colors hover:text-white)]"
             >
               {isUsdMode ? (
                 <>
@@ -172,7 +203,7 @@ export function AmountStep({
         </AnimatePresence>
       </div>
 
-      <div className="flex items-center gap-3 rounded-xl bg-[#1a1a1a] px-4 py-3">
+      <Container className="gap-3 rounded-[20px]">
         {selectedToken.logoURI ? (
           <Image
             src={selectedToken.logoURI}
@@ -182,7 +213,7 @@ export function AmountStep({
             className="rounded-full"
           />
         ) : (
-          <div className="flex size-10 items-center justify-center rounded-full bg-[#222] text-sm font-semibold">
+          <div className="flex size-10 items-center justify-center rounded-full bg-[var(--color-background-secondary] text-sm font-semibold)]">
             {selectedToken.symbol[0]}
           </div>
         )}
@@ -190,25 +221,25 @@ export function AmountStep({
           <span className="text-sm font-semibold">
             {selectedToken.name || selectedToken.symbol}
           </span>
-          <p className="text-xs text-[#7b7b7b]">
+          <p className="text-xs text-[var(--color-era-secondary)]">
             {selectedToken.balance ?? 0} {selectedToken.symbol}
           </p>
         </div>
         <button
-          onClick={onUseMax}
-          className="rounded-lg bg-[#2a2a2a] px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-[#333]"
+          onClick={handleUseMax}
+          className="rounded-lg bg-[var(--color-background-tertiary] px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-[var(--color-background-elevated)]"
         >
           Use Max
         </button>
-      </div>
+      </Container>
 
       <motion.button
-        onClick={() => numericAmount > 0 && !isInsufficient && onReview()}
+        onClick={() => numericAmount > 0 && !isInsufficient && onContinue()}
         className={cn(
           "flex w-full items-center justify-center rounded-xl py-3 text-sm font-semibold transition-all",
           numericAmount > 0 && !isInsufficient
             ? "bg-white text-black hover:bg-white/90"
-            : "cursor-not-allowed bg-[#1a1a1a] text-[#555]",
+            : "cursor-not-allowed bg-[var(--color-background-secondary] text-[var(--color-era-tertiary)]",
         )}
         whileTap={numericAmount > 0 && !isInsufficient ? { scale: 0.98 } : {}}
       >

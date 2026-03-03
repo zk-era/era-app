@@ -11,48 +11,50 @@
  * for addresses that have an ENS name set.
  */
 
+/**
+ * Phase 4: Transaction Confirmation
+ * User reviews details, selects batch size, and confirms the transaction
+ * 
+ * Phase 2 Updates:
+ * - Uses Zustand store for all send flow state
+ * - Simplified props (all state comes from store)
+ */
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown, CircleCheck, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { useAccount } from "wagmi";
 import makeBlockie from "ethereum-blockies-base64";
-import type { Token } from "@/lib/types/swap";
 import { eraApi, type POCEstimate } from "@/lib/api/era";
+import { formatGasUsd } from "@/lib/utils/format";
+import { useSendStore } from "@/lib/stores/sendStore";
 
 const BATCH_SIZE_OPTIONS = [20, 50, 100] as const;
-type BatchSize = (typeof BATCH_SIZE_OPTIONS)[number];
 
 interface ConfirmStepProps {
-  selectedToken: Token;
-  recipient: string;
-  truncatedRecipient: string;
-  numericAmount: number;
-  isUsdMode: boolean;
-  tokenValue: number;
-  usedMax: boolean;
-  batchSize: BatchSize;
-  onBatchSizeChange: (size: BatchSize) => void;
+  isProcessing?: boolean;
   onEditAmount: () => void;
   onConfirm: () => void;
 }
 
 export function ConfirmStep({
-  selectedToken,
-  recipient,
-  truncatedRecipient,
-  numericAmount,
-  isUsdMode,
-  tokenValue,
-  usedMax,
-  batchSize,
-  onBatchSizeChange,
+  isProcessing = false,
   onEditAmount,
   onConfirm,
 }: ConfirmStepProps) {
-  // Generate blockie for recipient (ENS names use the name as seed)
-  const recipientAvatar = recipient.startsWith("0x")
-    ? makeBlockie(recipient)
-    : makeBlockie(recipient.toLowerCase());
+  const { address: userAddress } = useAccount();
+  
+  // Zustand store - direct selectors (v5 best practice)
+  const recipient = useSendStore((s) => s.recipient);
+  const resolvedAddress = useSendStore((s) => s.resolvedAddress);
+  const selectedToken = useSendStore((s) => s.selectedToken);
+  const amount = useSendStore((s) => s.amount);
+  const isUsdMode = useSendStore((s) => s.isUsdMode);
+  const usedMax = useSendStore((s) => s.usedMax);
+  const batchSize = useSendStore((s) => s.batchSize);
+  const setBatchSize = useSendStore((s) => s.setBatchSize);
+  
+  // React Hooks MUST be called before any early returns
   const [estimate, setEstimate] = useState<POCEstimate | null>(null);
   const [loading, setLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -63,11 +65,13 @@ export function ConfirmStep({
     eraApi
       .getEstimate(batchSize)
       .then((data) => {
-        if (!cancelled) setEstimate(data);
+        if (!cancelled) {
+          setEstimate(data);
+        }
       })
       .catch((err) => {
-        if (!cancelled && process.env.NODE_ENV !== "production") {
-          console.error(err);
+        if (!cancelled) {
+          console.error("ERA Estimate Error:", err);
         }
       })
       .finally(() => {
@@ -78,10 +82,37 @@ export function ConfirmStep({
       cancelled = true;
     };
   }, [batchSize]);
+  
+  // Early return AFTER all hooks (Rules of Hooks compliance)
+  if (!selectedToken) {
+    return null;
+  }
+  
+  // Display logic for recipient
+  const displayAddress = resolvedAddress || recipient;
+  
+  // Display name for heading (ENS or truncated address)
+  const displayName = recipient.startsWith("0x")
+    ? `${recipient.slice(0, 6)}...${recipient.slice(-4)}`
+    : recipient.endsWith(".eth")
+      ? recipient
+      : `${recipient}.eth`;
+  
+  // Amount calculations
+  const numericAmount = parseFloat(amount) || 0;
+  const tokenPrice = selectedToken.price ?? 1;
+  const tokenValue = isUsdMode
+    ? tokenPrice > 0 ? numericAmount / tokenPrice : 0
+    : numericAmount;
+  
+  // Generate blockies
+  const recipientAvatar = makeBlockie(displayAddress);
+  const userAvatar = userAddress ? makeBlockie(userAddress) : null;
+  const truncatedUserAddress = userAddress 
+    ? `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`
+    : "Connected Wallet";
 
-  const totalUsd = isUsdMode
-    ? numericAmount
-    : numericAmount * (selectedToken.price ?? 1);
+  const totalUsd = isUsdMode ? numericAmount : numericAmount * tokenPrice;
 
   return (
     <div className="flex flex-col gap-6">
@@ -95,18 +126,25 @@ export function ConfirmStep({
             height={64}
             className="rounded-full"
           />
-          <CircleCheck className="absolute -bottom-1 -right-1 size-6 fill-blue-500 text-[#131313]" />
+          {/* Custom verification badge with circular background ring */}
+          <div className="absolute -bottom-1 -right-1 rounded-full bg-[var(--color-background)] p-[2px]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/verify.svg"
+              alt="Verified"
+              width={20}
+              height={20}
+            />
+          </div>
         </div>
         <h1 className="text-2xl font-bold leading-tight">
-          Confirm transaction to
-          <br />
-          <span className="text-white/80">{truncatedRecipient}</span>
+          Confirm transaction to {displayName}
         </h1>
       </div>
 
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-[#7b7b7b]">Total Value</span>
+          <span className="text-sm text-[var(--color-era-secondary)]">Total Value</span>
           <span className="text-base font-semibold">
             $
             {totalUsd.toLocaleString("en-US", {
@@ -117,11 +155,11 @@ export function ConfirmStep({
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-[#7b7b7b]">
+            <span className="text-sm text-[var(--color-era-secondary)]">
               Send {selectedToken.symbol}
             </span>
             {usedMax && (
-              <span className="rounded-md border border-[#505050] px-2 py-0.5 text-xs font-medium text-white/70">
+              <span className="rounded-md border border-[var(--color-border-hover] px-2 py-0.5 text-xs font-medium text-white/70)]">
                 Max
               </span>
             )}
@@ -145,88 +183,75 @@ export function ConfirmStep({
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-[#7b7b7b]">From</span>
-          <span className="text-sm font-medium text-white/70">
-            Connected Wallet
-          </span>
+          <span className="text-sm text-[var(--color-era-secondary)]">From</span>
+          <div className="flex items-center gap-2">
+            {userAvatar && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={userAvatar}
+                alt="Your wallet"
+                width={20}
+                height={20}
+                className="rounded-full"
+              />
+            )}
+            <span className="text-sm font-medium text-white/70">
+              {truncatedUserAddress}
+            </span>
+          </div>
+        </div>
+        
+        {/* Dotted separator */}
+        <div className="border-t border-dashed border-[var(--color-border)]" />
+
+        {/* Batch Size Selector */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-[var(--color-era-secondary)]">Batch Size</span>
+          <div className="relative">
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex items-center gap-2 rounded-lg bg-[var(--color-background-secondary] px-3 py-1.5 text-sm transition-colors hover:bg-[var(--color-background-tertiary)]"
+            >
+              <span className="font-medium text-white/70">{batchSize}</span>
+              <ChevronDown className={`size-3.5 text-[var(--color-era-secondary)] transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+            </button>
+            {dropdownOpen && (
+              <div className="absolute right-0 top-full z-10 mt-1 min-w-[80px] overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-background-secondary)]">
+                {BATCH_SIZE_OPTIONS.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => {
+                      setBatchSize(size);
+                      setDropdownOpen(false);
+                    }}
+                    className={`flex w-full items-center justify-center px-4 py-2 text-sm transition-colors hover:bg-[var(--color-background-tertiary)] ${
+                      size === batchSize ? "bg-[var(--color-background-tertiary)] text-white font-medium" : "text-white/70"
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Fee Estimate */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-[var(--color-era-secondary)]">Fee estimate</span>
+          {loading ? (
+            <Loader2 className="size-4 animate-spin text-white/50" />
+          ) : estimate ? (
+            <span className="text-sm font-medium text-white/70">
+              {formatGasUsd(estimate.eraCostUsd)}
+            </span>
+          ) : (
+            <span className="text-sm text-white/50">—</span>
+          )}
         </div>
       </div>
 
-      <div className="space-y-2 rounded-xl border border-green-500/20 bg-green-500/5 px-4 py-3">
-        {loading ? (
-          <div className="flex items-center justify-center py-2">
-            <Loader2 className="size-5 animate-spin text-white/50" />
-            <span className="ml-2 text-sm text-white/50">Fetching estimates...</span>
-          </div>
-        ) : estimate ? (
-          <>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-[#7b7b7b]">Direct L1 Transfer</span>
-              <span className="font-semibold text-white/70">${estimate.directL1CostUsd}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-[#7b7b7b]">ERA Batched</span>
-              <span className="font-semibold text-green-500">${estimate.eraCostUsd}</span>
-            </div>
-            <div className="border-t border-[#303030]/50 pt-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-white">Est. Savings</span>
-                <div className="text-right">
-                  <div className="text-sm font-bold text-green-500">${estimate.savingsUsd}</div>
-                  <div className="text-xs text-green-500/70">~{estimate.savingsPercent}% cheaper</div>
-                </div>
-              </div>
-            </div>
-            <div className="border-t border-[#303030]/50 pt-2 text-xs text-[#555]">
-              Gas: {estimate.gasPriceGwei} Gwei · ETH: ${estimate.ethPriceUsd.toLocaleString()}
-            </div>
-          </>
-        ) : (
-          <div className="text-center text-sm text-white/50">
-            Unable to fetch estimates
-          </div>
-        )}
-      </div>
-
-      {/* Batch Size Selector */}
-      <div className="relative">
-        <button
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="flex w-full items-center justify-between rounded-xl bg-[#1a1a1a] px-4 py-3 text-sm transition-colors hover:bg-[#222]"
-        >
-          <span className="text-[#7b7b7b]">Batch Size</span>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold">{batchSize} transactions</span>
-            <ChevronDown className={`size-4 text-[#7b7b7b] transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
-          </div>
-        </button>
-        {dropdownOpen && (
-          <div className="absolute left-0 right-0 top-full z-10 mt-1 overflow-hidden rounded-xl border border-[#303030] bg-[#1a1a1a]">
-            {BATCH_SIZE_OPTIONS.map((size) => (
-              <button
-                key={size}
-                onClick={() => {
-                  onBatchSizeChange(size);
-                  setDropdownOpen(false);
-                }}
-                className={`flex w-full items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-[#252525] ${
-                  size === batchSize ? "bg-[#252525]" : ""
-                }`}
-              >
-                <span>{size} transactions</span>
-                {size === batchSize && (
-                  <span className="text-xs text-green-500">Selected</span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-        <p className="mt-2 text-center text-xs text-[#555]">
-          Larger batches = more savings per transaction
-        </p>
-      </div>
-
-      <p className="text-center text-xs leading-relaxed text-[#555]">
+      <p className="text-center text-xs leading-relaxed text-[var(--color-era-tertiary)]">
         Review the above before confirming.
         <br />
         Once made, your transaction is irreversible.
@@ -235,17 +260,26 @@ export function ConfirmStep({
       <div className="flex gap-3">
         <motion.button
           onClick={onEditAmount}
-          className="flex-1 rounded-xl bg-[#1a1a1a] py-3 text-sm font-semibold transition-colors hover:bg-[#222]"
-          whileTap={{ scale: 0.98 }}
+          disabled={isProcessing}
+          className="flex-1 rounded-[20px] bg-[var(--color-background-secondary)] py-3 text-sm font-semibold transition-colors hover:bg-[var(--color-background-tertiary)] disabled:cursor-not-allowed disabled:opacity-50"
+          whileTap={isProcessing ? {} : { scale: 0.98 }}
         >
           Edit Amount
         </motion.button>
         <motion.button
           onClick={onConfirm}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white py-3 text-sm font-semibold text-black transition-colors hover:bg-white/90"
-          whileTap={{ scale: 0.98 }}
+          disabled={isProcessing}
+          className="flex flex-1 items-center justify-center gap-2 rounded-[20px] bg-white py-3 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+          whileTap={isProcessing ? {} : { scale: 0.98 }}
         >
-          Confirm
+          {isProcessing ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Processing
+            </>
+          ) : (
+            "Confirm"
+          )}
         </motion.button>
       </div>
     </div>

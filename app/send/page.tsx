@@ -1,21 +1,32 @@
 "use client";
 
+/**
+ * Send Flow with Toast Notifications
+ *
+ * Transaction progress and results are shown via Sileo toast notifications.
+ * Users stay on the confirm screen while toasts show progress, then a success
+ * toast displays gas savings with an Etherscan link. No separate result screen.
+ * 
+ * Phase 2 Updates:
+ * - Uses Zustand store for all send flow state
+ * - Simplified orchestration (components manage their own state)
+ * - Cleaner step navigation
+ */
+
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
-import { useState, useMemo } from "react";
-import type { Token } from "@/lib/types/swap";
+import { useState } from "react";
 import { useTokenBalances } from "@/lib/hooks/useTokenBalances";
 import { useRecentSends } from "@/lib/hooks/useRecentSends";
 import { useERASend } from "@/lib/hooks/useERASend";
+import { useSendStore } from "@/lib/stores/sendStore";
 import { AddressStep } from "@/components/send/AddressStep";
 import { TokenStep } from "@/components/send/TokenStep";
 import { AmountStep } from "@/components/send/AmountStep";
 import { ConfirmStep } from "@/components/send/ConfirmStep";
-import { StatusStep } from "@/components/send/StatusStep";
-import { ResultStep } from "@/components/send/ResultStep";
 
-type Step = "address" | "token" | "amount" | "confirm" | "status" | "result";
+type Step = "address" | "token" | "amount" | "confirm";
 
-const STEPS: Step[] = ["address", "token", "amount", "confirm", "status", "result"];
+const STEPS: Step[] = ["address", "token", "amount", "confirm"];
 
 const slideVariants = {
   enter: (direction: number) => ({ x: direction > 0 ? 40 : -40, opacity: 0 }),
@@ -23,80 +34,68 @@ const slideVariants = {
   exit: (direction: number) => ({ x: direction > 0 ? -40 : 40, opacity: 0 }),
 };
 
-function getEffectiveStep(
-  userStep: Step,
-  sendStatus: string,
-  hasResult: boolean
-): Step {
-  if (sendStatus === "completed" && hasResult) return "result";
-  if (sendStatus === "signing" || sendStatus === "submitting" || sendStatus === "processing") {
-    return "status";
-  }
-  return userStep;
-}
-
 export default function SendPage() {
   const { tokens, isLoading, isConnected } = useTokenBalances();
   const { recentSends, addRecentSend } = useRecentSends();
-  const { status: sendStatus, jobStatus, result, error, send, reset } = useERASend();
-  
-  const [userStep, setUserStep] = useState<Step>("address");
+  const [step, setStep] = useState<Step>("address");
   const [direction, setDirection] = useState(1);
-  const [recipient, setRecipient] = useState("");
-  const [selectedToken, setSelectedToken] = useState<Token | null>(null);
-  const [amount, setAmount] = useState("");
-  const [isUsdMode, setIsUsdMode] = useState(true);
-  const [usedMax, setUsedMax] = useState(false);
-  const [batchSize, setBatchSize] = useState<20 | 50 | 100>(20);
+  
+  // Zustand store - direct selectors (v5 best practice)
+  const reset = useSendStore((s) => s.reset);
 
-  const step = useMemo(
-    () => getEffectiveStep(userStep, sendStatus, !!result),
-    [userStep, sendStatus, result]
-  );
+  const { status: sendStatus, send } = useERASend({
+    onComplete: () => {
+      reset();
+      setStep("address");
+    },
+  });
 
   const goTo = (next: Step) => {
-    setDirection(STEPS.indexOf(next) > STEPS.indexOf(userStep) ? 1 : -1);
-    setUserStep(next);
+    setDirection(STEPS.indexOf(next) > STEPS.indexOf(step) ? 1 : -1);
+    setStep(next);
   };
 
-  const numericAmount = parseFloat(amount) || 0;
-  const tokenPrice = selectedToken?.price ?? 1;
-  const usdValue = isUsdMode ? numericAmount : numericAmount * tokenPrice;
-  const tokenValue = isUsdMode
-    ? tokenPrice > 0 ? numericAmount / tokenPrice : 0
-    : numericAmount;
-
-  const isValidAddress =
-    /^0x[a-fA-F0-9]{40}$/.test(recipient) ||
-    /^[a-zA-Z0-9-]+\.eth$/.test(recipient);
-
-  const truncatedRecipient = recipient.endsWith(".eth")
-    ? recipient
-    : recipient.length > 10
-      ? `${recipient.slice(0, 6)}...${recipient.slice(-4)}`
-      : recipient;
-
-  const handleUseMax = () => {
+  const handleConfirm = () => {
+    // Read state directly from store at confirmation time
+    const state = useSendStore.getState();
+    const { recipient, resolvedAddress, selectedToken, amount, isUsdMode, batchSize } = state;
+    
     if (!selectedToken) return;
-    setUsedMax(true);
-    const balance = selectedToken.balance ?? 0;
-    if (isUsdMode) {
-      setAmount((balance * tokenPrice).toString());
-    } else {
-      setAmount(balance.toString());
-    }
-  };
-
-  const toggleMode = () => {
-    if (numericAmount > 0) {
-      const converted = isUsdMode ? tokenValue : usdValue;
-      setAmount(
-        converted % 1 === 0
-          ? converted.toString()
-          : converted.toFixed(6).replace(/0+$/, "").replace(/\.$/, ""),
-      );
-    }
-    setIsUsdMode(!isUsdMode);
+    
+    // Use resolved address (0x...) instead of ENS name for transaction
+    const txAddress = resolvedAddress || recipient;
+    
+    // Save recipient to recent sends
+    const ensName = recipient.endsWith(".eth") || (!recipient.startsWith("0x") && recipient.length >= 3) 
+      ? recipient 
+      : undefined;
+    addRecentSend(txAddress, ensName);
+    
+    // Calculate values
+    const numericAmount = parseFloat(amount) || 0;
+    const tokenPrice = selectedToken.price ?? 1;
+    const tokenValue = isUsdMode
+      ? tokenPrice > 0 ? numericAmount / tokenPrice : 0
+      : numericAmount;
+    const usdValue = isUsdMode ? numericAmount : numericAmount * tokenPrice;
+    
+    // Execute ERA transaction
+    const formattedAmount = tokenValue.toFixed(selectedToken.decimals);
+    const formattedUsd = usdValue.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    
+    send({
+      to: txAddress,
+      token: selectedToken.address,
+      tokenSymbol: selectedToken.symbol,
+      tokenLogo: selectedToken.logoURI,
+      amount: formattedAmount,
+      usdValue: formattedUsd,
+      decimals: selectedToken.decimals,
+      batchSize,
+    });
   };
 
   return (
@@ -113,9 +112,6 @@ export default function SendPage() {
           >
             {step === "address" && (
               <AddressStep
-                recipient={recipient}
-                onRecipientChange={setRecipient}
-                isValidAddress={isValidAddress}
                 onContinue={() => goTo("token")}
                 recentSends={recentSends}
               />
@@ -126,90 +122,23 @@ export default function SendPage() {
                 tokens={tokens}
                 isLoading={isLoading}
                 isConnected={isConnected}
-                truncatedRecipient={truncatedRecipient}
-                onSelectToken={(token) => {
-                  setSelectedToken(token);
-                  setAmount("");
-                  setUsedMax(false);
-                  goTo("amount");
-                }}
+                onContinue={() => goTo("amount")}
                 onBack={() => goTo("address")}
               />
             )}
 
-            {step === "amount" && selectedToken && (
+            {step === "amount" && (
               <AmountStep
-                selectedToken={selectedToken}
-                truncatedRecipient={truncatedRecipient}
-                amount={amount}
-                isUsdMode={isUsdMode}
-                numericAmount={numericAmount}
-                usdValue={usdValue}
-                tokenValue={tokenValue}
-                onAmountChange={setAmount}
-                onToggleMode={toggleMode}
-                onUseMax={handleUseMax}
-                onReview={() => goTo("confirm")}
+                onContinue={() => goTo("confirm")}
                 onBack={() => goTo("token")}
               />
             )}
 
-            {step === "confirm" && selectedToken && (
+            {step === "confirm" && (
               <ConfirmStep
-                selectedToken={selectedToken}
-                recipient={recipient}
-                truncatedRecipient={truncatedRecipient}
-                numericAmount={numericAmount}
-                isUsdMode={isUsdMode}
-                tokenValue={tokenValue}
-                usedMax={usedMax}
-                batchSize={batchSize}
-                onBatchSizeChange={setBatchSize}
+                isProcessing={sendStatus !== "idle" && sendStatus !== "completed" && sendStatus !== "failed"}
                 onEditAmount={() => goTo("amount")}
-                onConfirm={() => {
-                  // Save recipient to recent sends
-                  const ensName = recipient.endsWith(".eth") ? recipient : undefined;
-                  const address = recipient.endsWith(".eth") ? recipient : recipient;
-                  addRecentSend(address, ensName);
-                  
-                  // Execute ERA transaction
-                  // Format tokenValue to max token decimals to avoid float precision issues
-                  const formattedAmount = tokenValue.toFixed(selectedToken.decimals);
-                  send({
-                    to: recipient,
-                    token: selectedToken.address,
-                    amount: formattedAmount,
-                    decimals: selectedToken.decimals,
-                    batchSize,
-                  });
-                }}
-              />
-            )}
-
-            {step === "status" && (
-              <StatusStep
-                sendStatus={sendStatus}
-                jobStatus={jobStatus}
-                error={error}
-                onRetry={() => {
-                  reset();
-                  goTo("confirm");
-                }}
-              />
-            )}
-
-            {step === "result" && result && (
-              <ResultStep
-                result={result}
-                onDone={() => {
-                  // Reset everything and go back to start
-                  reset();
-                  setRecipient("");
-                  setSelectedToken(null);
-                  setAmount("");
-                  setUsedMax(false);
-                  goTo("address");
-                }}
+                onConfirm={handleConfirm}
               />
             )}
           </motion.div>

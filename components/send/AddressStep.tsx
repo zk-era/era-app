@@ -1,126 +1,170 @@
+/**
+ * Phase 1: Address Input
+ * User enters recipient address or ENS name
+ * 
+ * Phase 2 Updates:
+ * - Uses Zustand store for state management
+ * - Uses useRecipientValidation hook for ENS resolution
+ * - Uses InlineLoader for consistent loading UX
+ */
 "use client";
 
-import { motion } from "framer-motion";
-import { ArrowRight, X } from "lucide-react";
-import Link from "next/link";
+import { X } from "lucide-react";
 import { useRef } from "react";
 import makeBlockie from "ethereum-blockies-base64";
-import { cn } from "@/lib/utils";
+import { SendHeader } from "@/components/shared/SendHeader";
+import { AddressListItem } from "@/components/shared/AddressListItem";
+import { Container } from "@/components/ui/container";
+import { InlineLoader } from "@/components/LoadingState";
+import { useSendStore } from "@/lib/stores/sendStore";
+import { useRecipientValidation } from "@/lib/hooks/useRecipientValidation";
 import type { RecentSend } from "@/lib/hooks/useRecentSends";
 
 interface AddressStepProps {
-  recipient: string;
-  onRecipientChange: (value: string) => void;
-  isValidAddress: boolean;
   onContinue: () => void;
   recentSends: RecentSend[];
 }
 
 export function AddressStep({
-  recipient,
-  onRecipientChange,
-  isValidAddress,
   onContinue,
   recentSends,
 }: AddressStepProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Zustand store - direct selectors (v5 best practice)
+  const recipient = useSendStore((s) => s.recipient);
+  const setRecipient = useSendStore((s) => s.setRecipient);
+  const setResolvedAddress = useSendStore((s) => s.setResolvedAddress);
+  
+  // Validation and ENS resolution
+  const { isValid, resolvedAddress, isResolving, error: ensError, normalizedName } = useRecipientValidation(recipient);
 
   const handlePaste = () => {
     const input = inputRef.current;
     if (!input) return;
     input.focus();
     navigator.clipboard.readText().then((text) => {
-      if (text) onRecipientChange(text.trim());
+      if (text) setRecipient(text.trim());
     });
+  };
+  
+  const handleContinue = () => {
+    // Save resolved address to store
+    if (resolvedAddress) {
+      setResolvedAddress(resolvedAddress);
+    }
+    onContinue();
   };
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold">Send</h1>
-        <Link
-          href="/"
-          className="rounded-lg p-1 transition-colors hover:bg-[#1a1a1a]"
-        >
-          <X className="size-5 text-[#7b7b7b]" />
-        </Link>
-      </div>
+      <SendHeader />
 
-      <div className="flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-3">
-        <span className="text-xs font-medium text-[#7b7b7b]">To</span>
+      <Container className="gap-2 rounded-[20px]">
+        <span className="text-xs font-medium text-[var(--color-era-secondary)]">To</span>
         <input
           ref={inputRef}
           type="text"
           placeholder="ENS or Address"
           value={recipient}
-          onChange={(e) => onRecipientChange(e.target.value)}
+          onChange={(e) => setRecipient(e.target.value)}
           onPaste={(e) => {
             e.preventDefault();
             const text = e.clipboardData.getData("text").trim();
-            onRecipientChange(text);
+            setRecipient(text);
           }}
-          className="flex-1 bg-transparent text-sm font-medium outline-none placeholder:font-medium placeholder:text-[#555]"
+          className="flex-1 bg-transparent text-sm font-medium outline-none placeholder:font-medium placeholder:text-[var(--color-era-tertiary)] text-ellipsis overflow-hidden"
           autoFocus
         />
-        <button
-          onClick={handlePaste}
-          className="rounded-lg bg-[#2a2a2a] px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-[#333]"
-        >
-          Paste
-        </button>
-      </div>
+        
+        {/* Dynamic button: Paste (empty) → X (typing) → Spinner (resolving) */}
+        {!recipient ? (
+          // Empty state: Show Paste button (same height as X button)
+          <button
+            onClick={handlePaste}
+            className="shrink-0 rounded-lg bg-[var(--color-background-tertiary)] px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-[var(--color-background-elevated)]"
+          >
+            Paste
+          </button>
+        ) : isResolving ? (
+          // Resolving ENS: Show spinner (same size as X button)
+          <InlineLoader size="sm" />
+        ) : (
+          // Has input: Show X to clear
+          <button
+            onClick={() => setRecipient("")}
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-background-tertiary)] transition-colors hover:bg-[var(--color-background-elevated)]"
+          >
+            <X className="size-3.5 text-white" />
+          </button>
+        )}
+      </Container>
 
+      {/* Search Results - Shows when valid address is entered */}
+      {recipient && isValid && (
+        <div className="flex flex-col gap-3 pb-4">
+          <span className="text-xs font-medium text-[var(--color-era-secondary)]">Search Results</span>
+          <AddressListItem
+            address={resolvedAddress || recipient}
+            displayName={
+              recipient.startsWith("0x")
+                ? `${recipient.slice(0, 6)}...${recipient.slice(-4)}`
+                : recipient.endsWith(".eth")
+                  ? recipient
+                  : `${recipient}.eth`
+            }
+            secondaryLabel={
+              recipient.startsWith("0x")
+                ? "Ethereum Address"
+                : resolvedAddress
+                  ? `${resolvedAddress.slice(0, 6)}...${resolvedAddress.slice(-4)}`
+                  : normalizedName && ensError
+                    ? <span className="text-red-400">{ensError ? "Resolution error" : "No address set"}</span>
+                    : "Ethereum Address"
+            }
+            isLoading={isResolving}
+            onClick={handleContinue}
+          />
+        </div>
+      )}
+
+      {/* Error message - Shows when address is invalid */}
+      {recipient && !isValid && (
+        <Container rounded="lg" padding="lg" className="justify-center">
+          <p className="text-sm text-[var(--color-era-secondary)]">Invalid Ethereum address or ENS name</p>
+        </Container>
+      )}
+
+      {/* Recent Sends - Only show when input is empty */}
       {recentSends.length > 0 && !recipient && (
-        <div className="flex flex-col gap-2">
-          <span className="text-xs font-medium text-[#7b7b7b]">Recent</span>
-          <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-3 pb-4">
+          <span className="text-xs font-medium text-[var(--color-era-secondary)]">Recent</span>
+          <div className="flex flex-col">
             {recentSends.map((recent) => (
-              <button
+              <AddressListItem
                 key={recent.address}
-                onClick={() => onRecipientChange(recent.ensName || recent.address)}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[#1a1a1a]"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={makeBlockie(recent.address)}
-                  alt=""
-                  width={32}
-                  height={32}
-                  className="rounded-full"
-                />
-                <div className="flex-1 overflow-hidden">
-                  {recent.ensName ? (
-                    <>
-                      <p className="truncate text-sm font-medium">{recent.ensName}</p>
-                      <p className="truncate text-xs text-[#7b7b7b]">
-                        {recent.address.slice(0, 6)}...{recent.address.slice(-4)}
-                      </p>
-                    </>
-                  ) : (
-                    <p className="truncate text-sm font-medium">
-                      {recent.address.slice(0, 6)}...{recent.address.slice(-4)}
-                    </p>
-                  )}
-                </div>
-              </button>
+                address={recent.address}
+                displayName={
+                  recent.ensName 
+                    ? recent.ensName 
+                    : `${recent.address.slice(0, 6)}...${recent.address.slice(-4)}`
+                }
+                secondaryLabel={
+                  recent.ensName
+                    ? `${recent.address.slice(0, 6)}...${recent.address.slice(-4)}`
+                    : "Ethereum Address"
+                }
+                onClick={() => {
+                  // Recent sends are already validated - go straight through
+                  setRecipient(recent.ensName || recent.address);
+                  setResolvedAddress(recent.address);
+                  onContinue();
+                }}
+              />
             ))}
           </div>
         </div>
       )}
-
-      <motion.button
-        onClick={() => isValidAddress && onContinue()}
-        className={cn(
-          "flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all",
-          isValidAddress
-            ? "bg-white text-black hover:bg-white/90"
-            : "cursor-not-allowed bg-[#1a1a1a] text-[#555]",
-        )}
-        whileTap={isValidAddress ? { scale: 0.98 } : {}}
-      >
-        Continue
-        {isValidAddress && <ArrowRight className="size-4" />}
-      </motion.button>
     </div>
   );
 }
