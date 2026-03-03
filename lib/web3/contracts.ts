@@ -17,8 +17,8 @@
 
 export const CONTRACTS = {
   11155111: {
-    // Sepolia Testnet
-    settlement: "0xC94179E28c3444e1495812AD3a473bB2C4da69c6" as const,
+    // Sepolia Testnet - Deployed Mar 3, 2026 (Fresh deployment with Exact Match verification)
+    settlement: "0xDb41E9279D4c1BFc3ED90D2B1f0dbc4C4ba08c83" as const,
   },
   1: {
     // Ethereum Mainnet (placeholder for production)

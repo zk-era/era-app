@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, createElement } from "react";
 import { useAccount, useSignTypedData, usePublicClient, useWalletClient } from "wagmi";
+import { useChainInfo } from "@/lib/context/ChainContext";
+import { sileo } from "sileo";
 import { eraApi, POCJobStatus, POCResult } from "@/lib/api/era";
 import { parseAbi, maxUint256 } from "viem";
 import { getContractAddress, getEIP712Domain, isSupportedChain } from "@/lib/web3/contracts";
 import { isValidAddress, isValidAmount } from "@/lib/utils/validation";
 import { logger } from "@/lib/utils/logger";
+import { ResultToast } from "@/components/send/ResultToast";
+import { useTransactionHistory } from "@/lib/hooks/useTransactionHistory";
+import { PulsatingLoader } from "@/components/PulsatingLoader";
 
 // Minimal ERC20 ABI for allowance and approve
 const ERC20_ABI = parseAbi([
@@ -36,6 +41,37 @@ export type SendStatus =
   | "completed"
   | "failed";
 
+// Helper to format error messages for toast display
+function formatErrorMessage(error: unknown): string {
+  if (typeof error === "string") {
+    return error.length > 80 ? error.slice(0, 80) + "..." : error;
+  }
+  
+  if (error instanceof Error) {
+    const message = error.message;
+    
+    // Handle common error patterns
+    if (message.includes("User rejected") || message.includes("user rejected")) {
+      return "Transaction rejected";
+    }
+    if (message.includes("insufficient funds")) {
+      return "Insufficient funds";
+    }
+    if (message.includes("network")) {
+      return "Network error - please try again";
+    }
+    
+    // Truncate long messages
+    return message.length > 80 ? message.slice(0, 80) + "..." : message;
+  }
+  
+  return "Transaction failed";
+}
+
+export interface UseERASendOptions {
+  onComplete?: () => void;
+}
+
 export interface UseERASendResult {
   status: SendStatus;
   jobStatus: POCJobStatus | null;
@@ -44,18 +80,24 @@ export interface UseERASendResult {
   send: (params: {
     to: string;
     token: string;
+    tokenSymbol: string;
+    tokenLogo?: string;
     amount: string;
+    usdValue: string;
     decimals: number;
     batchSize?: number;
   }) => Promise<void>;
   reset: () => void;
 }
 
-export function useERASend(): UseERASendResult {
+export function useERASend(options: UseERASendOptions = {}): UseERASendResult {
+  const { onComplete } = options;
   const { address, chainId } = useAccount();
+  const { chainIcon, chainName } = useChainInfo();
   const { signTypedDataAsync } = useSignTypedData();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
+  const { addTransaction } = useTransactionHistory();
 
   const [status, setStatus] = useState<SendStatus>("idle");
   const [jobStatus, setJobStatus] = useState<POCJobStatus | null>(null);
@@ -73,7 +115,10 @@ export function useERASend(): UseERASendResult {
     async (params: {
       to: string;
       token: string;
+      tokenSymbol: string;
+      tokenLogo?: string;
       amount: string;
+      usdValue: string;
       decimals: number;
       batchSize?: number;
     }) => {
@@ -120,6 +165,15 @@ export function useERASend(): UseERASendResult {
 
         // Step 1: Check token allowance
         setStatus("checking_allowance");
+        sileo.info({ 
+          title: "Checking allowance...",
+          icon: createElement(PulsatingLoader, { color: "#22d3ee" }), // Cyan - checking/info
+          duration: null, // Stay visible
+          styles: {
+            title: "text-[#22d3ee]!" // Match animation color
+          }
+        });
+        
         const allowance = await publicClient.readContract({
           address: params.token as `0x${string}`,
           abi: ERC20_ABI,
@@ -131,6 +185,14 @@ export function useERASend(): UseERASendResult {
         // Step 2: Request approval if needed
         if (allowance < amountInSmallestUnit) {
           setStatus("approving");
+          sileo.info({ 
+            title: "Approve token in wallet...",
+            icon: createElement(PulsatingLoader, { color: "#f59e0b" }), // Amber - action needed, costs gas
+            duration: null, // Stay visible
+            styles: {
+              title: "text-[#f59e0b]!" // Match animation color
+            }
+          });
           logger.debug("ERA", "Requesting token approval...");
           
           const hash = await walletClient.writeContract({
@@ -141,7 +203,19 @@ export function useERASend(): UseERASendResult {
           });
           
           logger.debug("ERA", "Approval tx submitted:", hash);
+          sileo.info({ 
+            title: "Waiting for approval confirmation...",
+            icon: createElement(PulsatingLoader, { color: "#f59e0b" }), // Amber - still waiting for approval
+            duration: null, // Stay visible
+            styles: {
+              title: "text-[#f59e0b]!" // Match animation color
+            }
+          });
           await publicClient.waitForTransactionReceipt({ hash });
+          sileo.success({ 
+            title: "Token approved",
+            duration: 3000 // Brief confirmation, then continue
+          });
           logger.debug("ERA", "Approval confirmed");
         }
 
@@ -151,6 +225,14 @@ export function useERASend(): UseERASendResult {
         logger.debug("ERA", "Current nonce:", nonce);
 
         // Step 4: Sign EIP-712 typed data
+        sileo.info({ 
+          title: "Sign transaction in wallet...",
+          icon: createElement(PulsatingLoader, { color: "#f59e0b" }), // Amber - action needed
+          duration: null, // Stay visible until next stage
+          styles: {
+            title: "text-[#f59e0b]!" // Match animation color
+          }
+        });
         const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600); // 1 hour
         const eip712Domain = getEIP712Domain(chainId, settlementAddress);
         const transferIntent = {
@@ -173,6 +255,14 @@ export function useERASend(): UseERASendResult {
 
         // Step 5: Submit to ERA backend (include the exact values we signed)
         setStatus("submitting");
+        sileo.info({ 
+          title: "Submitting to ERA...",
+          icon: createElement(PulsatingLoader, { color: "#a78bfa" }), // Purple - sending signed data
+          duration: null, // Stay visible
+          styles: {
+            title: "text-[#a78bfa]!" // Match animation color
+          }
+        });
         const submitResponse = await eraApi.submitTransaction({
           from: address,
           to: params.to,
@@ -187,28 +277,139 @@ export function useERASend(): UseERASendResult {
 
         // Step 6: Poll for status updates
         setStatus("processing");
+        sileo.info({ 
+          title: "Processing batch...",
+          icon: createElement(PulsatingLoader, { color: "#8b5cf6" }), // Violet - computation
+          duration: null, // Stay visible
+          styles: {
+            title: "text-[#8b5cf6]!" // Match animation color
+          }
+        });
+        
         const finalStatus = await eraApi.pollJobStatus(
           submitResponse.jobId,
-          (status) => {
-            setJobStatus(status);
+          (jobStatus) => {
+            setJobStatus(jobStatus);
+            // Update toast based on job status
+            if (jobStatus.status === "generating_proof") {
+              sileo.info({ 
+                title: "Generating ZK proof...",
+                icon: createElement(PulsatingLoader, { color: "#ec4899" }), // Pink - intense cryptographic work
+                duration: null, // Stay visible
+                styles: {
+                  title: "text-[#ec4899]!" // Match animation color
+                }
+              });
+            } else if (jobStatus.status === "settling") {
+              sileo.info({ 
+                title: "Settling on-chain...",
+                icon: createElement(PulsatingLoader, { color: "#10b981" }), // Emerald - final step, going to L1!
+                duration: null, // Stay visible
+                styles: {
+                  title: "text-[#10b981]!" // Match animation color
+                }
+              });
+            }
           }
         );
 
         if (finalStatus.status === "completed" && finalStatus.result) {
-          setResult(finalStatus.result);
+          const txResult = finalStatus.result;
+          const { gasComparison } = txResult;
+          setResult(txResult);
           setStatus("completed");
+
+          // Store transaction in history
+          addTransaction({
+            jobId: submitResponse.jobId,
+            tokenSymbol: params.tokenSymbol,
+            tokenLogo: params.tokenLogo,
+            amount: params.amount,
+            usdValue: params.usdValue,
+            recipient: params.to,
+            sender: address,
+            chainName: chainName || "Ethereum",
+            chainIcon: chainIcon,
+            result: txResult,
+          });
+
+          sileo.success({
+            title: "Transaction Settled!",
+            description: createElement(ResultToast, {
+              tokenSymbol: params.tokenSymbol,
+              tokenLogo: params.tokenLogo,
+              amount: params.amount,
+              usdValue: params.usdValue,
+              recipient: params.to,
+              sender: address,
+              networkFee: gasComparison.eraCostUsd,
+              chainName: chainName || "Ethereum",
+              chainIcon: chainIcon,
+            }),
+            button: {
+              title: "View Details",
+              onClick: () => window.location.assign(`/send/result/${submitResponse.jobId}`),
+            },
+            styles: {
+              button: "bg-white! text-black! font-semibold!",
+            },
+            duration: 10000, // Auto-dismiss after 10 seconds
+          });
+          // Call onComplete callback to reset form
+          onComplete?.();
         } else {
-          setError(finalStatus.error || "Transaction failed");
+          const fullError = finalStatus.error || "Transaction failed";
+          const errorMsg = formatErrorMessage(fullError);
+          setError(fullError);
           setStatus("failed");
+          sileo.error({ 
+            title: errorMsg,
+            button: {
+              title: "Copy Error",
+              onClick: () => {
+                navigator.clipboard.writeText(fullError).then(() => {
+                  sileo.success({ 
+                    title: "Error copied to clipboard",
+                    duration: 2000 
+                  });
+                }).catch(() => {
+                  sileo.error({ 
+                    title: "Failed to copy",
+                    duration: 2000 
+                  });
+                });
+              }
+            }
+          });
         }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        const fullError = err instanceof Error ? err.message : "Unknown error";
+        const displayError = formatErrorMessage(err);
         logger.error("ERA", "Error:", err);
-        setError(errorMessage);
+        setError(fullError);
         setStatus("failed");
+        sileo.error({ 
+          title: displayError,
+          button: {
+            title: "Copy Error",
+            onClick: () => {
+              navigator.clipboard.writeText(fullError).then(() => {
+                sileo.success({ 
+                  title: "Error copied to clipboard",
+                  duration: 2000 
+                });
+              }).catch(() => {
+                sileo.error({ 
+                  title: "Failed to copy",
+                  duration: 2000 
+                });
+              });
+            }
+          }
+        });
       }
     },
-    [address, chainId, publicClient, walletClient, signTypedDataAsync]
+    [address, chainId, chainIcon, chainName, publicClient, walletClient, signTypedDataAsync, addTransaction, onComplete]
   );
 
   return {

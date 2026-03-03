@@ -107,6 +107,14 @@ export const SEPOLIA_TOKENS: Record<string, Token> = {
     chainId: 11155111,
     logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x1aBaEA1f7C830bD89Acc67eC4af516284b1bC33c/logo.png",
   },
+  PYUSD: {
+    address: "0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9",
+    symbol: "PYUSD",
+    name: "PayPal USD",
+    decimals: 6,
+    chainId: 11155111,
+    logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x6c3ea9036406852006290770BEdFcAbA0e23A0e8/logo.png",
+  },
 };
 
 
