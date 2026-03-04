@@ -64,7 +64,7 @@ export function TokenSelector({
           <p className="text-sm text-[#7b7b7b]" aria-hidden="true">
             {isLoading
               ? "Loading..."
-              : subtitle || `111.82 ${selectedToken.symbol}`}
+              : subtitle || `${selectedToken.balance?.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 6 }) ?? '0'} ${selectedToken.symbol}`}
           </p>
         </div>
       </button>

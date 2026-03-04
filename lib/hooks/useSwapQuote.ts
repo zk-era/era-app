@@ -14,8 +14,18 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { usePublicClient } from "wagmi";
+import { parseAbi, parseUnits, formatUnits } from "viem";
 import { calculateERASavings } from "@/lib/services/uniswap.service";
 import type { UniswapQuoteResponse, ERAQuoteComparison } from "@/lib/types/swap";
+
+// Uniswap V2 Router address on Sepolia
+const UNISWAP_V2_ROUTER_SEPOLIA = "0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3";
+
+// Uniswap V2 Router ABI for getting quotes
+const UNISWAP_V2_ROUTER_ABI = parseAbi([
+  "function getAmountsOut(uint256 amountIn, address[] path) external view returns (uint256[] amounts)",
+]);
 
 interface UseSwapQuoteParams {
   tokenIn: {
@@ -43,10 +53,7 @@ interface UseSwapQuoteResult {
 const DEBOUNCE_MS = 500; // Wait 500ms after user stops typing
 
 export function useSwapQuote({
-  // These params are kept for API compatibility when real quotes are enabled
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   tokenIn,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   tokenOut,
   amount,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -55,6 +62,7 @@ export function useSwapQuote({
   chainId = 1,
   enabled = true,
 }: UseSwapQuoteParams): UseSwapQuoteResult {
+  const publicClient = usePublicClient();
   const [quote, setQuote] = useState<UniswapQuoteResponse | null>(null);
   const [comparison, setComparison] = useState<ERAQuoteComparison | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -65,23 +73,51 @@ export function useSwapQuote({
 
   const fetchQuote = useCallback(async () => {
     // Validation
-    if (!enabled) return;
+    if (!enabled) {
+      setIsLoading(false);
+      return;
+    }
     if (!amount || parseFloat(amount) <= 0) {
       setQuote(null);
       setComparison(null);
+      setIsLoading(false);
       return;
     }
 
-    // DISABLED: Wait for real API keys
-    // For now, calculate mock quote locally
-    setIsLoading(false);
+    if (!publicClient) {
+      setError("No provider available");
+      setIsLoading(false);
+      return;
+    }
+
+    // Query real V2 pool for actual swap rate
+    setIsLoading(true);
     
     try {
-      // Mock exchange rate (will be replaced with real API)
-      const mockRate = 10.87; // AAVE per ETH or similar
-      const outputAmount = parseFloat(amount) * mockRate;
-      const uniswapGasUSD = 48.75; // Typical gas cost
+      // Convert input amount to wei/smallest unit
+      const amountInWei = parseUnits(amount, tokenIn.decimals);
+      
+      // Path for V2 swap
+      const path = [
+        tokenIn.address as `0x${string}`,
+        tokenOut.address as `0x${string}`,
+      ];
 
+      // Call Uniswap V2 Router to get actual output amount
+      const amounts = await publicClient.readContract({
+        address: UNISWAP_V2_ROUTER_SEPOLIA,
+        abi: UNISWAP_V2_ROUTER_ABI,
+        functionName: "getAmountsOut",
+        args: [amountInWei, path],
+      });
+
+      // amounts[0] = input amount, amounts[1] = output amount
+      const outputAmountWei = amounts[1];
+      
+      // Use viem's formatUnits to properly convert BigInt to decimal string
+      const outputAmount = parseFloat(formatUnits(outputAmountWei, tokenOut.decimals));
+
+      const uniswapGasUSD = 48.75; // Typical V2 gas cost
       const eraSavings = calculateERASavings(uniswapGasUSD);
 
       const comparisonData: ERAQuoteComparison = {
@@ -104,9 +140,11 @@ export function useSwapQuote({
       setQuote(null);
       setComparison(comparisonData);
       setError(null);
-      return;
-    } catch {
-      setError("Failed to calculate quote");
+      setIsLoading(false);
+    } catch (err) {
+      console.error('[useSwapQuote] Error fetching V2 quote:', err);
+      setError("Failed to get quote from pool");
+      setIsLoading(false);
     }
 
     /* DISABLED UNTIL API KEYS WORK
@@ -186,7 +224,7 @@ export function useSwapQuote({
       abortControllerRef.current = null;
     }
     */
-  }, [enabled, amount]);
+  }, [enabled, amount, tokenIn.address, tokenIn.decimals, tokenOut.address, tokenOut.decimals, publicClient]);
 
   // Debounced fetch
   useEffect(() => {
@@ -198,13 +236,9 @@ export function useSwapQuote({
       fetchQuote();
     }, DEBOUNCE_MS);
 
-    const currentAbortController = abortControllerRef.current;
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
-      }
-      if (currentAbortController) {
-        currentAbortController.abort();
       }
     };
   }, [fetchQuote]);

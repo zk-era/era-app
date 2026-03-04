@@ -15,6 +15,11 @@ export interface POCSubmitRequest {
   nonce: number;
   deadline: number;
   batchSize: number;
+  // Swap-specific fields (optional - if present, this is a swap intent)
+  tokenOut?: string;
+  amountOutMin?: string;
+  swapRouter?: string;
+  poolAddress?: string;
 }
 
 export interface POCSubmitResponse {
