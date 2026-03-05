@@ -11,7 +11,6 @@
 
 import { X } from "lucide-react";
 import { useRef } from "react";
-import makeBlockie from "ethereum-blockies-base64";
 import { SendHeader } from "@/components/shared/SendHeader";
 import { AddressListItem } from "@/components/shared/AddressListItem";
 import { Container } from "@/components/ui/container";

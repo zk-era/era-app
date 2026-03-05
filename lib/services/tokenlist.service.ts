@@ -5,6 +5,7 @@
  * Reference: https://business.1inch.com/portal/documentation/apis/swap/classic-swap/introduction
  */
 
+import { logger } from "@/lib/utils/logger";
 import type { Token } from "@/lib/types/swap";
 
 const ONEINCH_API_URL =
@@ -39,7 +40,7 @@ interface TokenListResponse {
  */
 export async function fetch1inchTokenList(chainId: number = 1): Promise<Token[]> {
   if (!ONEINCH_API_KEY) {
-    console.warn("1inch API key not configured, falling back to Uniswap token list");
+    logger.warn("TokenList", "1inch API key not configured, falling back to Uniswap token list");
     return fetchUniswapTokenList();
   }
 
@@ -53,7 +54,7 @@ export async function fetch1inchTokenList(chainId: number = 1): Promise<Token[]>
     });
 
     if (!response.ok) {
-      console.warn(`1inch tokens API error: ${response.statusText}, falling back to Uniswap`);
+      logger.warn("TokenList", `1inch tokens API error: ${response.statusText}, falling back to Uniswap`);
       return fetchUniswapTokenList();
     }
 
@@ -73,7 +74,7 @@ export async function fetch1inchTokenList(chainId: number = 1): Promise<Token[]>
 
     return tokens;
   } catch (error) {
-    console.error("Error fetching 1inch token list:", error);
+    logger.error("TokenList", "Error fetching 1inch token list:", error);
     // Fallback to Uniswap
     return fetchUniswapTokenList();
   }
@@ -106,7 +107,7 @@ export async function fetchUniswapTokenList(): Promise<Token[]> {
 
     return mainnetTokens;
   } catch (error) {
-    console.error("Error fetching Uniswap token list:", error);
+    logger.error("TokenList", "Error fetching Uniswap token list:", error);
     throw error;
   }
 }
@@ -159,7 +160,7 @@ export async function fetchPopularTokens(): Promise<Token[]> {
 
     return [...popularTokens, ...remainingTokens];
   } catch (error) {
-    console.error("Error fetching popular tokens:", error);
+    logger.error("TokenList", "Error fetching popular tokens:", error);
     // Fallback to empty array, app will use local tokens
     return [];
   }

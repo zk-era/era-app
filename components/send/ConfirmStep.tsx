@@ -69,10 +69,9 @@ export function ConfirmStep({
           setEstimate(data);
         }
       })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error("ERA Estimate Error:", err);
-        }
+      .catch(() => {
+        // Error is already handled by estimate loading state
+        // No need to log here as it would be redundant
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -247,8 +246,8 @@ export function ConfirmStep({
               aria-haspopup="true"
               className="flex items-center gap-2 rounded-lg bg-[var(--color-background-secondary] px-3 py-1.5 text-sm transition-colors hover:bg-[var(--color-background-tertiary)]"
             >
-              <span className="font-medium text-white/70" aria-hidden="true">{batchSize}</span>
               <ChevronDown className={`size-3.5 text-[var(--color-era-secondary)] transition-transform ${dropdownOpen ? "rotate-180" : ""}`} aria-hidden="true" />
+              <span className="font-medium text-white/70" aria-hidden="true">{batchSize}</span>
             </button>
             {dropdownOpen && (
               <div 

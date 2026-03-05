@@ -7,6 +7,7 @@
 import { useState, useEffect } from "react";
 import { fetchPopularTokens } from "@/lib/services/tokenlist.service";
 import { getTokensForChain } from "@/lib/constants/tokens";
+import { logger } from "@/lib/utils/logger";
 import type { Token } from "@/lib/types/swap";
 
 interface UseTokenListResult {
@@ -37,13 +38,13 @@ export function useTokenList(chainId: number = 1): UseTokenListResult {
           setTokens(uniswapTokens);
         } else {
           // Fallback to local tokens if API fails
-          console.warn("Using fallback local token list");
+          logger.warn("TokenList", "Using fallback local token list");
           setTokens(getTokensForChain(chainId));
         }
       } catch (err) {
         if (!mounted) return;
         
-        console.error("Failed to load token list:", err);
+        logger.error("TokenList", "Failed to load token list:", err);
         setError(err instanceof Error ? err.message : "Failed to load tokens");
         
         // Fallback to local tokens

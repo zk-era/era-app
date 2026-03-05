@@ -91,6 +91,14 @@ export const SEPOLIA_TOKENS: Record<string, Token> = {
     decimals: 18,
     chainId: 11155111,
   },
+  WETH: {
+    address: "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9",
+    symbol: "WETH",
+    name: "Wrapped Ether",
+    decimals: 18,
+    chainId: 11155111,
+    logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
+  },
   USDC: {
     address: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
     symbol: "USDC",

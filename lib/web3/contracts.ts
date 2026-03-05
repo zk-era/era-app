@@ -17,8 +17,8 @@
 
 export const CONTRACTS = {
   11155111: {
-    // Sepolia Testnet - Deployed Mar 3, 2026 (Fresh deployment with Exact Match verification)
-    settlement: "0xDb41E9279D4c1BFc3ED90D2B1f0dbc4C4ba08c83" as const,
+    // Sepolia Testnet - Deployed Mar 4, 2026 (with Swap support via Uniswap V2)
+    settlement: "0x1FF49FbcD8e712c524a14C651aaF955d4524d216" as const,
   },
   1: {
     // Ethereum Mainnet (placeholder for production)
@@ -43,7 +43,7 @@ export function isSupportedChain(chainId: number): chainId is SupportedChainId {
 
 export function getEIP712Domain(chainId: number, settlementAddress: `0x${string}`) {
   return {
-    name: "ERASettlement",
+    name: "ERA Protocol",
     version: "1",
     chainId,
     verifyingContract: settlementAddress,

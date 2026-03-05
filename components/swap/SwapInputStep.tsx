@@ -11,6 +11,7 @@ import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import { ArrowDownUp, ChevronDown, Equal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import useMeasure from "react-use-measure";
+import { useAccount } from "wagmi";
 import { cn } from "@/lib/utils";
 import { useSwapQuote } from "@/lib/hooks/useSwapQuote";
 import { useTokenBalances } from "@/lib/hooks/useTokenBalances";
@@ -23,6 +24,9 @@ interface SwapInputStepProps {
 }
 
 export function SwapInputStep({ onContinue }: SwapInputStepProps) {
+  // Wallet connection
+  const { address: userAddress } = useAccount();
+
   // Zustand store
   const tokenIn = useSwapStore((s) => s.tokenIn);
   const tokenOut = useSwapStore((s) => s.tokenOut);
@@ -69,8 +73,8 @@ export function SwapInputStep({ onContinue }: SwapInputStepProps) {
       decimals: SEPOLIA_TOKENS.EURC.decimals,
     },
     amount: inputValue || "0",
-    walletAddress: "0x742d35cc6634c0532925a3b844bc454e4438f44e",
-    enabled: value > 0 && !!tokenIn && !!tokenOut,
+    walletAddress: userAddress || "",
+    enabled: value > 0 && !!tokenIn && !!tokenOut && !!userAddress,
   });
 
   // Calculations

@@ -44,4 +44,18 @@ vi.mock('framer-motion', () => ({
     }
   }),
   AnimatePresence: ({ children }: any) => children,
+  MotionConfig: ({ children }: any) => children,
+}))
+
+// Mock NumberFlow component (used in SwapInputStep for animated numbers)
+vi.mock('@number-flow/react', () => ({
+  default: ({ children, ...props }: any) => React.createElement('span', props, children)
+}))
+
+// Mock react-use-measure hook (used in SwapInputStep for dynamic width measurements)
+vi.mock('react-use-measure', () => ({
+  default: () => [
+    vi.fn(), 
+    { width: 100, height: 20, top: 0, left: 0, bottom: 20, right: 100, x: 0, y: 0 }
+  ]
 }))

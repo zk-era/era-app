@@ -58,10 +58,9 @@ export function SwapConfirmStep({
           setEstimate(data);
         }
       })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error("ERA Estimate Error:", err);
-        }
+      .catch(() => {
+        // Error is already handled by estimate loading state
+        // No need to log here as it would be redundant
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

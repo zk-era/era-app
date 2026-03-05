@@ -17,6 +17,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { usePublicClient } from "wagmi";
 import { parseAbi, parseUnits, formatUnits } from "viem";
 import { calculateERASavings } from "@/lib/services/uniswap.service";
+import { logger } from "@/lib/utils/logger";
 import type { UniswapQuoteResponse, ERAQuoteComparison } from "@/lib/types/swap";
 
 // Uniswap V2 Router address on Sepolia
@@ -68,7 +69,6 @@ export function useSwapQuote({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const abortControllerRef = useRef<AbortController | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchQuote = useCallback(async () => {
@@ -142,7 +142,7 @@ export function useSwapQuote({
       setError(null);
       setIsLoading(false);
     } catch (err) {
-      console.error('[useSwapQuote] Error fetching V2 quote:', err);
+      logger.error("useSwapQuote", "Error fetching V2 quote:", err);
       setError("Failed to get quote from pool");
       setIsLoading(false);
     }
