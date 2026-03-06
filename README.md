@@ -70,9 +70,9 @@ This pricing model excludes:
 
 ---
 
-## 📊 Verified Gas Savings
+## 📊 Proven Gas Savings
 
-Real data from Sepolia testnet (30 gwei, $2,500 ETH):
+Validated on Sepolia testnet (calculations at 30 gwei, $2,500 ETH):
 
 ### ERC20 Send Transactions
 

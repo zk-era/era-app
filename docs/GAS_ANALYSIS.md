@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-ERA Protocol achieves **60-77% gas cost reduction** for ERC20 transactions on Ethereum L1 through zkSTARK-proven batch settlements. Our Sepolia testnet results demonstrate consistent, verifiable savings across send and swap operations.
+ERA Protocol achieves **60-77% gas cost reduction** for ERC20 transactions on Ethereum L1 through zkSTARK-proven batch settlements. Testing on Sepolia testnet has validated these savings across send and swap operations.
 
 **Key Findings:**
 - ✅ **Send transactions:** 65-93% cheaper (depending on batch size)
@@ -27,8 +27,7 @@ ERA Protocol achieves **60-77% gas cost reduction** for ERC20 transactions on Et
 3. [Swap Transaction Analysis](#swap-transaction-analysis)
 4. [Batch Size Impact](#batch-size-impact)
 5. [Gas Price Sensitivity](#gas-price-sensitivity)
-6. [Real User Testimonials](#real-user-testimonials)
-7. [Comparison with Alternatives](#comparison-with-alternatives)
+6. [Comparison with Alternatives](#comparison-with-alternatives)
 
 ---
 
@@ -122,10 +121,8 @@ Per User: 510,000 / 20 = 25,500 gas
 | **Gas Saved** | - | 25,500 | 30,000 | 32,500 |
 | **Savings %** | - | **65%** | **85%** | **93%** |
 
-**Real Sepolia Transactions:**
-- Direct Transfer: [0xabc...](https://sepolia.etherscan.io/) - 51,234 gas
-- ERA Batch (20): [0xdef...](https://sepolia.etherscan.io/) - 518,492 gas (25,924 per user)
-- ERA Batch (50): [0xghi...](https://sepolia.etherscan.io/) - 1,050,000 gas (21,000 per user)
+**Sepolia Testing:**
+Gas consumption validated on Sepolia testnet through contract testing
 
 ---
 
@@ -259,32 +256,6 @@ ERA Protocol's savings are **constant in percentage terms** but vary significant
 
 ---
 
-## Real User Testimonials
-
-### Sepolia Testnet Users
-
-> **@alice_eth:** "Just sent 50 USDC via ERA and saved $0.35 on gas. That's a free coffee! 🎉"  
-> *Transaction: 0xabc... (Batch #23)*
-
-> **@bob_defi:** "Swapped USDC → WETH for $0.14 instead of $1.59. This is game-changing for frequent traders."  
-> *Transaction: 0xdef... (Batch #31)*
-
-> **@carol_dev:** "Integrated ERA into our payroll dapp. We're now saving $5-10 per employee payout cycle."  
-> *Integration: Company XYZ*
-
-> **@dave_whale:** "Tested with 100 transactions in one batch. 93% savings. This scales beautifully."  
-> *Transaction: 0xghi... (Batch #42)*
-
-### Developer Feedback
-
-> **@eve_protocol:** "ERA SDK was plug-and-play. Took 30 minutes to integrate. Users love the savings."  
-> *DeFi Protocol Integration*
-
-> **@frank_builder:** "The UX is identical to direct transfers but cheaper. No compromises."  
-> *Wallet Integration*
-
----
-
 ## Comparison with Alternatives
 
 ### Gas Cost Comparison Table
@@ -333,42 +304,6 @@ For sending $100 USDC:
 - ✅ Need absolute lowest cost (<$0.01)
 - ✅ Application lives entirely on L2
 - ✅ Can tolerate bridge friction
-
----
-
-## Statistical Analysis
-
-### Sample Data (Last 30 Days)
-
-**Total Batches:** 47  
-**Total Transactions:** 982  
-**Average Batch Size:** 20.9
-
-#### Batch Size Distribution
-
-| Batch Size | Count | Percentage |
-|------------|-------|------------|
-| 5-10 | 3 | 6% |
-| 11-20 | 28 | 60% |
-| 21-30 | 11 | 23% |
-| 31-50 | 4 | 9% |
-| 51-100 | 1 | 2% |
-
-**Average Fill Rate:** 87% (17.4 intents per 20-size batch)
-
-#### Savings Distribution
-
-| Savings % | Transactions | Percentage |
-|-----------|--------------|------------|
-| 50-60% | 45 | 5% |
-| 60-70% | 612 | 62% |
-| 70-80% | 228 | 23% |
-| 80-90% | 82 | 8% |
-| 90-95% | 15 | 2% |
-
-**Median Savings:** 65.3%  
-**Mean Savings:** 67.8%  
-**Standard Deviation:** 8.2%
 
 ---
 
@@ -445,7 +380,7 @@ ERA Protocol delivers **verifiable, consistent 60-77% gas savings** on Ethereum 
 ✅ **Real savings:** Not theoretical, actually achieved  
 ✅ **Transparent costs:** All on-chain, no hidden fees  
 ✅ **Scalable:** Better savings with larger batches  
-✅ **Production-ready:** 47 batches, 982 transactions tested  
+✅ **Validated on Sepolia testnet:** Gas savings proven through testing  
 
 **Next Steps:**
 1. Mainnet deployment (post-audit)
@@ -453,20 +388,7 @@ ERA Protocol delivers **verifiable, consistent 60-77% gas savings** on Ethereum 
 3. Protocol integrations (wallets, dApps)
 4. Decentralized prover network
 
----
 
-## Appendix: Raw Data
-
-### Sample Batch Transactions
-
-| Batch ID | Size | Total Gas | Gas/User | Direct Gas | Savings % | Etherscan |
-|----------|------|-----------|----------|------------|-----------|-----------|
-| batch_001 | 20 | 510,000 | 25,500 | 51,000 | 65% | [Link](https://sepolia.etherscan.io/) |
-| batch_002 | 20 | 518,492 | 25,924 | 51,000 | 64% | [Link](https://sepolia.etherscan.io/) |
-| batch_015 | 50 | 1,050,000 | 21,000 | 51,000 | 85% | [Link](https://sepolia.etherscan.io/) |
-| batch_042 | 100 | 1,850,000 | 18,500 | 51,000 | 93% | [Link](https://sepolia.etherscan.io/) |
-
-*Full dataset available in `data/batches.csv`*
 
 ---
 
