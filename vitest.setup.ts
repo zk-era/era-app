@@ -4,9 +4,6 @@ import * as matchers from '@testing-library/jest-dom/matchers'
 import { toHaveNoViolations } from 'jest-axe'
 import React from 'react'
 
-// Disable animations in test environment for reliable testing
-process.env.FRAMER_MOTION_DISABLE_ANIMATIONS = 'true'
-
 // Extend Vitest's expect with jest-dom matchers
 expect.extend(matchers)
 
