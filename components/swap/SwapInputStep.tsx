@@ -165,6 +165,7 @@ export function SwapInputStep({ onContinue }: SwapInputStepProps) {
             >
               <motion.span
                 animate={{ width: bounds.width > 0 ? bounds.width : "auto" }}
+                aria-hidden="true"
               >
                 <span ref={ref} className="inline-flex overflow-hidden">
                   <AnimatePresence mode="popLayout">
@@ -190,7 +191,7 @@ export function SwapInputStep({ onContinue }: SwapInputStepProps) {
                   </AnimatePresence>
                 </span>
               </motion.span>
-              Max
+              <span aria-hidden="true">Max</span>
             </button>
           </div>
 
