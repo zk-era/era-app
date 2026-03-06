@@ -12,7 +12,7 @@
 ERA Protocol is a **Proof of Concept demonstrating 60-90% gas savings** for batched ERC20 transfers and Uniswap swaps using zkSTARK proofs. This document provides transparent disclosure of our current security posture, architectural decisions, and roadmap to production readiness.
 
 **What We've Proven:**
-- ✅ **zkSTARK batching works:** Real Sepolia transactions show 65-92% gas savings (transfers) and 78-96% (swaps)
+- ✅ **zkSTARK batching works:** Real Sepolia transactions show 58-92% gas savings (transfers) and 78-96% (swaps)
 - ✅ **Production-ready proof generation:** 8-72 second proof times on Railway Hobby tier ($5/month)
 - ✅ **End-to-end flow functional:** Frontend → backend → proof → settlement working reliably
 - ✅ **Comprehensive testing:** 82/97 tests passing (84.5% success rate)
@@ -34,9 +34,9 @@ ERA Protocol is a **Proof of Concept demonstrating 60-90% gas savings** for batc
 **ERC20 Transfers:**
 | Batch Size | ERA Gas | Baseline Gas | Savings | Etherscan |
 |------------|---------|--------------|---------|-----------|
-| 20 txs | 17,885 | 51,000 | **64.9%** | [0x3feb...3b77](https://sepolia.etherscan.io/tx/0x3feb1a2e1898f57219e4a70cd30352ee8730f7d8154d5cde74d76a01c7663b77) |
-| 50 txs | 7,979 | 51,000 | **84.4%** | [0xd67e...9a1b](https://sepolia.etherscan.io/tx/0xd67e9a173a69c94e3616780baca233528ca73ffa71051ecce2fd1d6080009a1b) |
-| 100 txs | 4,060 | 51,000 | **92.0%** | [0xf55c...bd60](https://sepolia.etherscan.io/tx/0xf55c90868bd98bba39a16024670d21655a497ed10fab651634cbb4eb1cefbd60) |
+| 20 txs | 18,594 | 45,059 | **58.7%** | [0xcc2d...6525](https://sepolia.etherscan.io/tx/0xcc2d916f7794aa6a8bb71246f7445beafee44c610d38117be429e8062c836525) |
+| 50 txs | 7,296 | 45,059 | **83.8%** | [0x0b3a...ce5f](https://sepolia.etherscan.io/tx/0x0b3a6cf3b80c5522e86927d97f2e4ced05ad4a3efdf3a492839d82ac67bace5f) |
+| 100 txs | 3,577 | 45,059 | **92.1%** | [0x5adf...8625](https://sepolia.etherscan.io/tx/0x5adf4e462ed8e710bd7544e62cbabe5c86937d619bdb20b9763da9cdadec8625) |
 
 **Uniswap V2 Swaps:**
 | Batch Size | ERA Gas | Baseline Gas | Savings | Etherscan |
@@ -45,7 +45,7 @@ ERA Protocol is a **Proof of Concept demonstrating 60-90% gas savings** for batc
 | 50 txs | 8,877 | 101,538 | **91.3%** | [0x357b...b1b9](https://sepolia.etherscan.io/tx/0x357bd74213431d2cc2b048beb81517222144240f34d18bf8308994d9e70cb1b9) |
 | 100 txs | 4,509 | 101,538 | **95.6%** | [0x93c8...1e9f](https://sepolia.etherscan.io/tx/0x93c8b53213dbfa9456f0d8ed5dd54ffe28b5963250af3f866b341f6ba5dc1e9f) |
 
-*Baselines: 51,000 gas (ERC20 transfer), 101,538 gas (Uniswap V2 swap average)*
+*Baselines: 45,059 gas (measured USDC transfer via MetaMask), 101,538 gas (measured Uniswap V2 swap average)*
 
 ### 1.2 zkSTARK Implementation Quality
 
