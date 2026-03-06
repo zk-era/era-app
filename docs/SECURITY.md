@@ -136,6 +136,46 @@ ERA Protocol is a **Proof of Concept demonstrating 60-90% gas savings** for batc
 - No operator bonding enforced on-chain
 - State root sequencing not fully secured
 
+### 2.4 Operator Key Management (POC Phase)
+
+**Current Setup:**
+
+| Aspect | POC Implementation | Status |
+|--------|-------------------|--------|
+| **Operator Address** | `0x201E8bE983275cCdBd4720454CFEa519b65160dA` | Single team member |
+| **Key Storage** | Railway environment variable (`ERA_OPERATOR_PRIVATE_KEY`) | Hot wallet |
+| **Access Control** | Railway admin dashboard | Single point of access |
+| **Backup** | Offline private key backup | Manual recovery |
+| **Multi-sig** | None | Not implemented for POC |
+
+**Security Trade-off:**
+
+This is a **deliberate POC simplification**. Using a hot wallet in Railway environment variables is acceptable for testnet demonstrations because:
+
+✅ **No Real Funds at Risk:** Sepolia testnet ETH and tokens have no monetary value  
+✅ **Rapid Iteration:** Single operator enables fast development cycles  
+✅ **Focus on Core Tech:** POC proves zkSTARK feasibility, not production key management  
+
+⚠️ **Known Limitations:**
+- Hot wallet in cloud environment variables (accessible to anyone with Railway admin access)
+- Single point of compromise (Railway account breach exposes operator key)
+- No multi-sig or threshold signature scheme
+- No automated key rotation
+
+**Mainnet Requirements:**
+
+Before mainnet launch, operator key management must be replaced with:
+
+1. **Hardware Security Module (HSM)** or Multi-Party Computation (MPC) wallet
+2. **Multi-sig governance:** 5-of-9 Gnosis Safe (3 core team, 3 community, 3 advisors)
+3. **Operator bonding:** 10-50 ETH stake per operator (slashable for misbehavior)
+4. **Key rotation protocol:** Automated quarterly rotation with 7-day timelock
+5. **Geographic distribution:** Signers across multiple jurisdictions
+
+**Timeline:** Operator key management upgrade planned for Phase 2 (Months 4-7, see Section 7.3).
+
+**Verdict:** Acceptable for POC, completely inadequate for mainnet.
+
 ---
 
 ## 3. Security Assessment (Current POC State)
@@ -268,6 +308,60 @@ function resolveChallenge(bytes32 batchId, bool uphold) external onlyOwner {
 
 **Current Risk (Testnet POC):** Medium (acceptable for testnet demo).  
 **Mainnet Status:** MUST FIX before mainnet launch.
+
+### 4.5 Padding Strategy: POC Volume Limitation
+
+**The Core Challenge:**
+
+ERA Protocol achieves gas savings through **batch amortization**—the more transactions in a batch, the lower the per-user cost. Our verified Sepolia results show:
+- Batch 20: 58.7% savings
+- Batch 50: 83.8% savings
+- Batch 100: 92.1% savings
+
+However, these savings require **full batches**. A production protocol would naturally accumulate user transactions over time (e.g., wait 30 seconds until 50 users submit transfers, then settle).
+
+**The POC Problem:**
+
+During the POC phase on Sepolia testnet:
+- Transaction volume is limited to our test transactions
+- Demonstrating batch economics requires showing full batches (20/50/100)
+- Waiting for organic volume would make demo impractical
+
+**Solution: Historical Transaction Padding**
+
+To prove the thesis works, we fill batches with "padding"—recent ERC20 transfers from Sepolia history:
+
+1. **User submits real transaction:** 1 USDC transfer via MetaMask
+2. **Backend fetches padding:** Query Alchemy API for 19 recent Sepolia USDC transfers
+3. **Build batch:** 1 real + 19 padding = batch of 20
+4. **Generate proof:** zkSTARK proof covers all 20 transactions
+5. **Settle on-chain:** All 20 transfers execute atomically
+
+**Why This Proves the Thesis:**
+
+The gas savings are **real**. The proof verification cost (~58k gas) is amortized across 20 transactions whether they're all "real" user transactions or include padding. The zkSTARK doesn't distinguish—it validates state transitions regardless of transaction origin.
+
+**Security Analysis (Current POC):**
+- ✅ Token whitelist: USDC, EURC, WETH only (standard ERC20s)
+- ✅ No rebasing tokens (stETH, aToken) that change balance over time
+- ✅ No fee-on-transfer tokens (certain USDT variants)
+- ✅ Testnet only (no real funds at risk)
+- ✅ Padding transactions are real historical Sepolia transfers (already executed once)
+
+**Mainnet Design:**
+
+**Padding is a demonstration tool, not a production feature.** 
+
+Mainnet ERA Protocol would operate like any L2 rollup:
+- Users submit transactions to the protocol
+- Backend queues transactions as they arrive
+- Settle batch when target size reached (e.g., 50 transactions) OR timeout (e.g., 60 seconds)
+- Organic transaction volume fills batches naturally
+
+No padding. No historical transaction recycling. Just real user transactions batched for efficiency.
+
+**Current Risk (Testnet POC):** Low—token whitelist prevents edge cases  
+**Mainnet Status:** Padding unnecessary—organic volume fills batches
 
 ---
 
@@ -466,7 +560,7 @@ This POC proves the gas savings thesis works. But transforming it into a product
 | Category | Estimated Cost |
 |----------|----------------|
 | Formal security audit (Trail of Bits, OpenZeppelin) | $80,000 - $150,000 |
-| Cryptographic review (specialized firm) | $30,000 - $50,000 |
+| zkSTARK/FRI cryptographic review (specialized auditors) | $30,000 - $50,000 |
 | Infrastructure (dedicated compute, HSMs) | $20,000 - $40,000 |
 | Bug bounty program | $50,000 - $100,000 |
 | Legal/regulatory review | $15,000 - $30,000 |
@@ -476,6 +570,45 @@ This POC proves the gas savings thesis works. But transforming it into a product
 **Current Funding:** $0 (self-funded POC to date)
 
 **EF Grant Request:** We are seeking EF support to fund this roadmap and bring zkSTARK-based gas savings to Ethereum users at scale.
+
+#### Critical Note on zkSTARK Audit Requirements
+
+**⚠️ ERA's custom FRI prover requires specialized zkSTARK auditors, NOT general smart contract auditors.**
+
+**Why Standard Auditors Aren't Sufficient:**
+
+Firms like Trail of Bits and OpenZeppelin excel at:
+- ✅ Smart contract vulnerability analysis (reentrancy, access control, etc.)
+- ✅ EVM execution security
+- ✅ Token standard compliance
+
+However, ERA's custom TypeScript FRI implementation requires expertise in:
+- ❌ Polynomial commitment schemes (Reed-Solomon codes, low-degree testing)
+- ❌ Fiat-Shamir transform security analysis
+- ❌ Finite field arithmetic correctness (field operations, modular arithmetic)
+- ❌ Query soundness and grinding attack resistance
+- ❌ FRI folding round security
+
+**Who Can Audit ERA's Prover:**
+
+The $30k-$50k cryptographic review budget targets firms/researchers with proven zkSTARK expertise:
+- StarkWare researchers (if available for third-party audits)
+- Academic cryptographers specializing in polynomial IOPs
+- Security firms with dedicated ZK teams (e.g., Trail of Bits ZK division, NCC Group crypto team)
+- Independent ZK auditors with published FRI/STARK papers
+
+**Audit Scope:**
+
+The zkSTARK audit would cover:
+1. Security parameter selection (domain size, query count, security bits)
+2. FRI commitment and query generation correctness
+3. Field arithmetic implementation (no overflow, correct modular reduction)
+4. Fiat-Shamir transcript security (proper domain separation, grinding resistance)
+5. Proof verification gas optimization (on-chain ERAVerifier.sol)
+
+**This is a separate budget line from the $80k-$150k smart contract audit.** Both are necessary—standard auditors handle contracts, ZK specialists handle the prover.
+
+**EF Guidance Needed:** Recommendations for reputable zkSTARK audit firms and typical audit timelines.
 
 ### 8.3 Ecosystem Integration & Strategic Direction
 

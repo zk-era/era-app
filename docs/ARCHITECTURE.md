@@ -541,10 +541,33 @@ export function generateQueries(
 contract ERASettlement is Ownable {
     IERAVerifier public verifier;
     
+    // Operator management
+    mapping(address => bool) public operators;
+    
+    modifier onlyOperator() {
+        require(operators[msg.sender], "Not authorized operator");
+        _;
+    }
+    
+    /**
+     * Owner can add/remove operators (separate from settlement rights)
+     */
+    function addOperator(address operator) external onlyOwner {
+        operators[operator] = true;
+        emit OperatorAdded(operator);
+    }
+    
+    function removeOperator(address operator) external onlyOwner {
+        operators[operator] = false;
+        emit OperatorRemoved(operator);
+    }
+    
     // User nonces (replay attack prevention)
     mapping(address => uint256) public nonces;
     
     // Events
+    event OperatorAdded(address indexed operator);
+    event OperatorRemoved(address indexed operator);
     event BatchVerified(bytes32 indexed batchId, address indexed operator, bytes32 stateRoot);
     event TransferExecuted(bytes32 indexed batchId, address indexed from, address indexed to, address token, uint256 amount);
     event SwapExecuted(bytes32 indexed batchId, address indexed from, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut);
@@ -599,6 +622,37 @@ contract ERASettlement is Ownable {
 2. **Atomic execution:** All transfers in batch succeed or revert together
 3. **Replay protection:** Nonces prevent double-spend
 4. **Deadline enforcement:** Signatures expire after deadline
+
+#### Operator vs. Owner Access Control
+
+The `onlyOperator` modifier implements **separation of duties**:
+
+| Role | Capabilities | Current Holder (POC) |
+|------|--------------|---------------------|
+| **Owner** | Add/remove operators, upgrade contract, pause system, change verifier | Contract deployer (team) |
+| **Operator** | Submit batches, settle transactions (cannot change contract logic) | `0x201E8bE983275cCdBd4720454CFEa519b65160dA` (single operator) |
+
+**Why Separate Roles?**
+
+1. **Principle of Least Privilege:** Operators only need settlement rights, not contract upgrade rights
+2. **Operational Flexibility:** Can add/remove operators without touching ownership
+3. **Future Multi-Operator Support:** Multiple addresses can be operators simultaneously
+
+**Current POC Implementation:**
+
+- **Single operator:** Railway backend wallet (`0x201E8bE983275cCdBd4720454CFEa519b65160dA`)
+- **Owner control:** Can add additional operators via `addOperator()`
+- **No bonding enforced on-chain** (trust-based for POC)
+
+**Mainnet Evolution:**
+
+Phase 2 (Months 4-7) will implement:
+- Multiple bonded operators (10-50 ETH stake each)
+- On-chain bonding enforcement (must deposit ETH to become operator)
+- Slashing conditions (lose bond for invalid proof submission)
+- Operator rotation (randomized selection to prevent collusion)
+
+This architecture makes the migration from single-operator (POC) to multi-operator (mainnet) straightforward—just add more addresses to the `operators` mapping and implement bonding logic.
 
 ---
 
