@@ -632,28 +632,21 @@ The zkSTARK audit would cover:
 
 **We're not just looking for a check. We're looking for mentorship.**
 
-### 8.4 Why Guidance Matters More Than Money
+### 8.4 Why We Need the Ethereum Foundation
 
-**We Could Raise Funds Elsewhere:**
-- VCs would fund this POC (demonstrated traction, real gas savings)
-- Could bootstrap via token presale or grants from other ecosystems
-- Revenue model exists (take small fee from gas savings)
+**We're Coming to EF Because:**
 
-**But We're Coming to EF Because:**
 1. **We want to do this RIGHT:** EF guidance ensures we align with Ethereum's principles, not just ship fast
 2. **We want to LEARN:** Access to researchers who've solved similar problems (rollups, bridges, L2s)
 3. **We want to INTEGRATE:** EF network unlocks ecosystem adoption in a way money alone cannot
 4. **We want TRUST:** EF endorsement signals "this is Ethereum-aligned," not "this is a sidecar project"
 
-**The Wrong Approach:**
-- Raise VC funding → Ship fast → Cut corners on security → Hope for adoption
-- Build in isolation → Miss ecosystem developments → Become incompatible
-- Optimize for token launch → Sacrifice decentralization → Betray Ethereum's ethos
+**Why EF Guidance is Essential:**
 
-**The Right Approach (Why We Need EF):**
-- EF guidance → Build correctly → Earn community trust → Achieve sustainable adoption
-- Learn from Ethereum's history → Avoid known failure modes → Deliver something robust
-- Align with ecosystem → Integrate seamlessly → Become infrastructure, not a competitor
+- **Build correctly:** Learn from Ethereum's history and avoid known failure modes
+- **Earn community trust:** EF endorsement signals we're building infrastructure, not a competitor
+- **Achieve sustainable adoption:** Align with ecosystem standards and integrate seamlessly
+- **Avoid dead-ends:** EF can steer us away from approaches the ecosystem has already explored
 
 **This POC exists to prove we're worth the Ethereum Foundation's time and guidance.** The resources enable us to execute on that guidance over 10-15 months. But the guidance IS the point.
 
