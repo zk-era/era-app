@@ -67,7 +67,7 @@ ERA Protocol is a **Layer 1 scaling solution** that batches multiple ERC20 trans
 | **Frontend** | Next.js 15, Zustand, Wagmi | `era-app/` | User interface, wallet integration |
 | **Backend** | Node.js, TypeScript, Express | `era/backend/` | Proof orchestration, batch building |
 | **zkSTARK Engine** | **ERA Custom FRI Prover (TypeScript)** | `era/packages/starks/` | **Custom-built cryptographic proof generation (NOT StarkWare Stone)** |
-| **Smart Contracts** | Solidity 0.8.x | Sepolia: `0x1FF49F...` | On-chain settlement, verification |
+| **Smart Contracts** | Solidity 0.8.x | Sepolia: `0xDb41E927...` (Settlement), `0xDcac7bd5...` (Verifier) | On-chain settlement, verification |
 | **Prover Coordinator** | ERAProver + ConnectKit | `era/packages/prover/` | Proof generation orchestration **running inside Railway backend** |
 
 ---
@@ -492,9 +492,15 @@ export function generateQueries(
   securityBits: 76.3,            // ✅ Above 66.8 required
   queries: 21,
   friRounds: 9,
-  gasEstimate: '~12600 gas'      // Proof verification cost
+  gasEstimate: '~12600 gas'      // Query verification only (see note below)
 }
 ```
+
+**⚠️ Gas Cost Clarification:** The `gasEstimate: ~12600 gas` shown above is **only the query verification portion** (21 queries × ~600 gas = 12.6k). The **actual on-chain verification cost** measured from Sepolia transactions is **~58k-63k gas total**, broken down as:
+- **Query verification:** ~12.6k gas (what the estimate shows)
+- **FRI round verification:** ~40k gas (9 rounds × ~4.4k gas)
+- **Merkle authentication:** ~3k gas (verifying query openings)
+- **Contract overhead:** ~2.4k gas (storage writes, events)
 
 **Batch 50/100:**
 ```javascript
@@ -520,14 +526,14 @@ export function generateQueries(
 
 | Contract | Address | Purpose |
 |----------|---------|---------|
-| **ERASettlement** | `0x1FF49FbcD8e712c524a14C651aaF955d4524d216` | Batch settlement, user intent execution |
-| **ERAVerifier** | `0xDcAc7bD52EA8ECA2B3941e414153A209508B546f` | zkSTARK proof verification |
+| **ERASettlement** | `0xDb41E9279D4c1BFc3ED90D2B1f0dbc4C4ba08c83` | Batch settlement, user intent execution |
+| **ERAVerifier** | `0xDcac7bd52Ea8ECA2b3941E414153A209508B546f` | zkSTARK proof verification |
 | **Supported Tokens** | | |
 | USDC | `0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238` | Whitelisted |
 | EURC | `0x08210F9170F89Ab7658F0B5E3fF39b0E03C594D4` | Whitelisted |
 | WETH | `0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9` | Whitelisted |
 
-**Verified on Sepolia:** [View Contract](https://sepolia.etherscan.io/address/0x1FF49FbcD8e712c524a14C651aaF955d4524d216)
+**Verified on Sepolia:** [View ERASettlement](https://sepolia.etherscan.io/address/0xDb41E9279D4c1BFc3ED90D2B1f0dbc4C4ba08c83) | [View ERAVerifier](https://sepolia.etherscan.io/address/0xDcac7bd52Ea8ECA2b3941E414153A209508B546f)
 
 ### 5.2 ERASettlement.sol (Simplified)
 

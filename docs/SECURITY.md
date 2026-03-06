@@ -119,7 +119,9 @@ ERA Protocol is a **Proof of Concept demonstrating 60-90% gas savings** for batc
 
 ### 2.3 Smart Contract Security
 
-**Verified Sepolia Contract:** [`0x9a9C70DAbC37a790b2Ad26CD864266F113FD7F00`](https://sepolia.etherscan.io/address/0x9a9C70DAbC37a790b2Ad26CD864266F113FD7F00)
+**Verified Sepolia Contracts:**
+- **ERASettlement:** [`0xDb41E9279D4c1BFc3ED90D2B1f0dbc4C4ba08c83`](https://sepolia.etherscan.io/address/0xDb41E9279D4c1BFc3ED90D2B1f0dbc4C4ba08c83)
+- **ERAVerifier:** [`0xDcac7bd52Ea8ECA2b3941E414153A209508B546f`](https://sepolia.etherscan.io/address/0xDcac7bd52Ea8ECA2b3941E414153A209508B546f)
 
 **Security Features:**
 - EIP-712 signature verification (prevents replay attacks)
