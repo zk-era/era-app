@@ -70,33 +70,35 @@ This pricing model excludes:
 
 ---
 
-## 📊 Verified Gas Savings
+## 📊 Projected Gas Savings
 
-Real data from Sepolia testnet (30 gwei, $2,500 ETH):
+Theoretical calculations based on contract architecture (30 gwei, $2,500 ETH):
 
 ### ERC20 Send Transactions
 
 | Method | Gas Used | Cost (USD) | Savings |
 |--------|----------|------------|---------|
 | **Direct L1** | 51,000 | **$0.54** | - |
-| **ERA (Batch 20)** | 18,000 | **$0.19** | **65%** ↓ |
-| **ERA (Batch 50)** | 7,200 | **$0.08** | **85%** ↓ |
-| **ERA (Batch 100)** | 3,600 | **$0.04** | **93%** ↓ |
+| **ERA (Batch 20)** | ~25,500 | **~$0.27** | **~50%** ↓ |
+| **ERA (Batch 50)** | ~21,000 | **~$0.22** | **~60%** ↓ |
+| **ERA (Batch 100)** | ~18,500 | **~$0.20** | **~65%** ↓ |
 
 ### Token Swaps (Uniswap V2)
 
 | Method | Gas Used | Cost (USD) | Savings |
 |--------|----------|------------|---------|
 | **Direct Swap** | 150,000 | **$1.59** | - |
-| **ERA (Batch 20)** | 33,000 | **$0.35** | **78%** ↓ |
-| **ERA (Batch 50)** | 13,200 | **$0.14** | **91%** ↓ |
+| **ERA (Batch 20)** | ~40,500 | **~$0.43** | **~73%** ↓ |
+| **ERA (Batch 50)** | ~23,200 | **~$0.25** | **~84%** ↓ |
 
-**Why does this work?**
-- Fixed proof verification cost (~150k gas) is shared
-- Per-user execution cost is minimal (~18k gas)
-- Larger batches = greater savings
+**Why this works:**
+- Fixed proof verification cost (~150k gas) is amortized across all users
+- Per-user execution cost is minimal
+- Larger batches = greater savings per user
 
-📖 **Full analysis:** [docs/GAS_ANALYSIS.md](docs/GAS_ANALYSIS.md)
+**Note:** Savings percentages are based on contract design and standard ERC20 gas costs. Production data collection planned post-security audit.
+
+📖 **Technical analysis:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ---
 
