@@ -337,8 +337,10 @@ describe('SwapInputStep', () => {
 
       render(<SwapInputStep onContinue={mockContinue} />)
       
-      const errorMessage = await screen.findByText(/insufficient balance/i)
+      // Component shows "Not Enough {tokenSymbol}" not "insufficient balance"
+      const errorMessage = await screen.findByText(/not enough usdc/i)
       expect(errorMessage).toBeInTheDocument()
+      expect(errorMessage).toHaveAttribute('role', 'alert')
     })
 
     it('should disable Continue button when amount is 0', () => {

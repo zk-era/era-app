@@ -408,10 +408,13 @@ describe('SwapConfirmStep', () => {
       expect(backButton).toHaveFocus()
     })
 
-    it('should allow focusing on confirm button', () => {
+    it('should allow focusing on confirm button', async () => {
       render(<SwapConfirmStep {...defaultProps} />)
       
-      const confirmButton = screen.getByRole('button', { name: /confirm swapping.*usdc.*for.*weth/i })
+      // Wait for loading to complete
+      const confirmButton = await screen.findByRole('button', { name: /confirm swapping.*usdc.*for.*weth/i })
+      await waitFor(() => expect(confirmButton).not.toBeDisabled())
+      
       confirmButton.focus()
       
       expect(confirmButton).toHaveFocus()

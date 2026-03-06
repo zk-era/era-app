@@ -385,9 +385,10 @@ describe('Swap Flow Integration', () => {
     const { SwapInputStep } = await import('@/components/swap/SwapInputStep')
     render(<SwapInputStep onContinue={vi.fn()} />)
     
-    // Should show insufficient balance error
-    const errorMessage = await screen.findByText(/insufficient balance/i)
+    // Should show insufficient balance error (component shows "Not Enough {token}")
+    const errorMessage = await screen.findByText(/not enough usdc/i)
     expect(errorMessage).toBeInTheDocument()
+    expect(errorMessage).toHaveAttribute('role', 'alert')
     
     // Continue button should be disabled
     const continueButton = screen.getByRole('button', { name: /continue to confirmation/i })
