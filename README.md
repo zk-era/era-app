@@ -1,11 +1,11 @@
 # ERA Protocol
 
-> **Save 60-77% on Ethereum gas fees through zkSTARK-proven batch settlements on Layer 1**
+> **Save 59-96% on Ethereum gas fees through zkSTARK-proven batch settlements on Layer 1**
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-80%2F97%20passing-brightgreen)](__tests__)
 [![Accessibility](https://img.shields.io/badge/WCAG%202.1-AA%20Compliant-green)](docs/ACCESSIBILITY.md)
-[![Sepolia](https://img.shields.io/badge/Sepolia-Live-orange)](https://sepolia.etherscan.io/address/0x1FF49FbcD8e712c524a14C651aaF955d4524d216)
+[![Sepolia](https://img.shields.io/badge/Sepolia-Live-orange)](https://sepolia.etherscan.io/address/0xDcac7bd52Ea8ECA2b3941E414153A209508B546f)
 
 ---
 
