@@ -650,6 +650,95 @@ The zkSTARK audit would cover:
 
 **This POC exists to prove we're worth the Ethereum Foundation's time and guidance.** The resources enable us to execute on that guidance over 10-15 months. But the guidance IS the point.
 
+### 8.5 Open Source & Developer Adoption Strategy
+
+**ERA Protocol is Ethereum public infrastructure, not a walled garden.**
+
+We're not building a product to monetize—we're building **composable infrastructure** that any wallet, dApp, or protocol can integrate to reduce user gas costs. Success = ecosystem-wide adoption, not proprietary value capture.
+
+**Open Source Commitment:**
+
+- ✅ **All code MIT licensed:** Contracts, backend, frontend, prover—everything
+- ✅ **Public repositories:** No proprietary components or vendor lock-in
+- ✅ **Developer documentation:** Integration guides and API docs available on testnet
+- ✅ **Community-driven:** Post-mainnet governance via DAO (not company-controlled)
+
+**Why Open Source Matters:**
+
+Infrastructure requires **trust**. Developers won't integrate ERA if:
+- They can't audit the code
+- They're locked into proprietary APIs
+- They worry about rug pulls or pivots
+
+Open source removes these barriers. Developers can:
+- ✅ Fork and self-host if needed
+- ✅ Audit security themselves
+- ✅ Contribute improvements back
+- ✅ Build with confidence it's a public good
+
+**Developer-First Approach:**
+
+We've designed ERA for **composability from day 1**:
+
+| Layer | Developer Experience |
+|-------|---------------------|
+| **Smart Contracts** | Standard EIP-712 signatures (wallet-agnostic) |
+| **Backend API** | Simple REST endpoints (language-agnostic) |
+| **Frontend SDK** | TypeScript/JavaScript SDK (framework-agnostic) |
+| **Integration** | Drop-in to existing dApps (no architectural changes) |
+
+**Target Integrations:**
+
+| Use Case | Target Partners | Impact |
+|----------|----------------|--------|
+| **Wallets** | MetaMask, Rabby, Rainbow, Coinbase Wallet | Offer "Batch Mode" toggle for all users |
+| **DEX Aggregators** | 1inch, Matcha, Paraswap | Reduce swap costs by 78-96% |
+| **DeFi Protocols** | Aave, Compound, Uniswap | Batch deposits/withdrawals |
+| **NFT Marketplaces** | OpenSea, Blur, Magic Eden | Batch minting/transfers |
+| **Payment Apps** | Celo, Wyre, Request Network | Batch payment settlements |
+
+**Developer Adoption Path:**
+
+**Phase 1 (Current - POC):**
+- ✅ Testnet API available (Sepolia)
+- ✅ Integration guide published ([docs/developers/INTEGRATION_GUIDE.md](developers/INTEGRATION_GUIDE.md))
+- ✅ API reference available ([docs/developers/API_REFERENCE.md](developers/API_REFERENCE.md))
+- ✅ Reference implementation (era-app) demonstrates integration patterns
+- ✅ Open for community feedback and contributions
+
+**Phase 2 (Months 4-7 - Beta):**
+- [ ] npm SDK package (@era-protocol/sdk)
+- [ ] Mainnet beta with 3-5 partner dApps
+- [ ] Developer grants program ($50k-$100k pool to fund integrations)
+- [ ] Integration examples repository (wallet, DEX, DeFi, NFT use cases)
+
+**Phase 3 (Months 10-15 - Production):**
+- [ ] Public mainnet launch
+- [ ] Developer documentation site (docs.eraprotocol.xyz)
+- [ ] Community governance DAO (protocol upgrades via token vote)
+- [ ] Open operator network (permissionless participation)
+
+**Why This Matters to EF:**
+
+The Ethereum Foundation funds **public goods that benefit the entire ecosystem**, not individual companies. By demonstrating:
+
+1. ✅ **Open source from day 1** (MIT license, public repos)
+2. ✅ **Developer documentation on testnet** (integration guides prove composability)
+3. ✅ **Clear adoption strategy** (targeting wallets, DEXs, DeFi, NFTs)
+4. ✅ **Community governance planned** (DAO, not company control)
+
+**We signal we're building infrastructure, not a startup.**
+
+**EF Guidance Needed:**
+
+- Which wallet/dApp integrations should we prioritize?
+- How to structure developer grants program?
+- Should we pursue EIP standardization for batch settlement patterns?
+- How to coordinate with Account Abstraction (ERC-4337) ecosystem?
+- Best practices from rollup/L2 teams on developer adoption?
+
+**This is about ecosystem growth, not company revenue. Success = ERA becomes invisible infrastructure that "just works" everywhere.**
+
 ---
 
 ## 9. Responsible Disclosure
