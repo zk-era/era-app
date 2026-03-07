@@ -192,7 +192,8 @@ ERA Protocol consists of three layers:
 
 | Contract | Address | Etherscan |
 |----------|---------|-----------|
-| **ERASettlement** | `0x1FF49FbcD8e712c524a14C651aaF955d4524d216` | [View](https://sepolia.etherscan.io/address/0x1FF49FbcD8e712c524a14C651aaF955d4524d216) |
+| **ERASettlement** | `0xDb41E9279D4c1BFc3ED90D2B1f0dbc4C4ba08c83` | [View](https://sepolia.etherscan.io/address/0xDb41E9279D4c1BFc3ED90D2B1f0dbc4C4ba08c83) |
+| **ERAVerifier** | `0xDcac7bd52Ea8ECA2b3941E414153A209508B546f` | [View](https://sepolia.etherscan.io/address/0xDcac7bd52Ea8ECA2b3941E414153A209508B546f) |
 
 ### Mainnet (Post-Audit)
 

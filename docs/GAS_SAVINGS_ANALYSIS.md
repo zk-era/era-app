@@ -7,6 +7,8 @@
 
 ## ERA Protocol Batched Transfers
 
+**📝 POC Note on Padding:** All POC batches use padding (1 real transaction + padding to reach target size) to demonstrate batch economics on testnet where organic volume is limited. Mainnet ERA Protocol would accumulate organic user transactions over time (e.g., queue fills to 50 transactions → settle batch) with no padding required. See SECURITY.md § 4.5 for detailed padding strategy and mainnet design.
+
 ### Batch Size: 20 (1 real + 19 padding)
 - **Transaction:** [0xcc2d916f7794aa6a8bb71246f7445beafee44c610d38117be429e8062c836525](https://sepolia.etherscan.io/tx/0xcc2d916f7794aa6a8bb71246f7445beafee44c610d38117be429e8062c836525)
 - **Token:** 1 USDC
@@ -203,6 +205,11 @@
 - **Block:** 10396699
 
 **Average Direct Swap Gas:** 101,538 gas (avg of 3 swaps)
+
+**⚠️ Note on Gas Price Variance:**  
+The direct swap baselines show significantly lower gas prices (0.003 Gwei) compared to ERA swap batches (1.502 Gwei). This indicates the baseline swaps were executed in a different session when Sepolia gas prices were abnormally low. **However, percentage savings are gas-price-invariant** — the 78-96% savings calculations remain valid regardless of gas price differences. Gas savings scale proportionally: if direct swaps cost 101k gas and ERA costs 21k gas, the 78.5% savings holds whether gas price is 0.003 Gwei or 1.5 Gwei or 50 Gwei.
+
+For a tighter comparison, we recommend re-executing direct swap baselines in the same session as ERA batches (similar to how transfer baselines were executed 04:03-04:07 UTC with consistent 1.513 Gwei gas prices).
 
 ---
 
