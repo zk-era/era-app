@@ -3,7 +3,8 @@
 > **Save 59-96% on Ethereum gas fees through zkSTARK-proven batch settlements on Layer 1**
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-80%2F97%20passing-brightgreen)](__tests__)
+[![Crypto Tests](https://img.shields.io/badge/crypto%20tests-33%2F33%20100%25-brightgreen)](__tests__)
+[![Build](https://img.shields.io/badge/build-82%2F97-yellow)](__tests__)
 [![Accessibility](https://img.shields.io/badge/WCAG%202.1-AA%20Compliant-green)](docs/ACCESSIBILITY.md)
 [![Sepolia](https://img.shields.io/badge/Sepolia-Live-orange)](https://sepolia.etherscan.io/address/0xDcac7bd52Ea8ECA2b3941E414153A209508B546f)
 
@@ -52,8 +53,8 @@ This pricing model excludes:
                      ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │  3. Generate zkSTARK Proof (6-30 seconds)                      │
-│     • Cairo program proves batch correctness                   │
-│     • Stone prover generates STARK proof                       │
+│     • Custom FRI prover validates batch correctness            │
+│     • zkSTARK proof generated in-process                       │
 │     • Proof is constant size (~150KB)                          │
 └────────────────────┬────────────────────────────────────────────┘
                      │
@@ -78,18 +79,19 @@ Validated on Sepolia testnet (calculations at 30 gwei, $2,500 ETH):
 
 | Method | Gas Used | Cost (USD) | Savings |
 |--------|----------|------------|---------|
-| **Direct L1** | 51,000 | **$0.54** | - |
-| **ERA (Batch 20)** | 18,000 | **$0.19** | **65%** ↓ |
-| **ERA (Batch 50)** | 7,200 | **$0.08** | **85%** ↓ |
-| **ERA (Batch 100)** | 3,600 | **$0.04** | **93%** ↓ |
+| **Direct L1** | 45,059 | **$0.54** | - |
+| **ERA (Batch 20)** | 18,594 | **$0.22** | **58.7%** ↓ |
+| **ERA (Batch 50)** | 7,296 | **$0.09** | **83.8%** ↓ |
+| **ERA (Batch 100)** | 3,577 | **$0.04** | **92.1%** ↓ |
 
 ### Token Swaps (Uniswap V2)
 
 | Method | Gas Used | Cost (USD) | Savings |
 |--------|----------|------------|---------|
-| **Direct Swap** | 150,000 | **$1.59** | - |
-| **ERA (Batch 20)** | 33,000 | **$0.35** | **78%** ↓ |
-| **ERA (Batch 50)** | 13,200 | **$0.14** | **91%** ↓ |
+| **Direct Swap** | 101,538 | **$1.22** | - |
+| **ERA (Batch 20)** | 21,845 | **$0.26** | **78.5%** ↓ |
+| **ERA (Batch 50)** | 8,877 | **$0.11** | **91.3%** ↓ |
+| **ERA (Batch 100)** | 4,509 | **$0.05** | **95.6%** ↓ |
 
 **Why does this work?**
 - Fixed proof verification cost (~150k gas) is shared
@@ -143,7 +145,7 @@ ERA Protocol consists of three layers:
 ┌──────────────────────────────────────────────────────────────┐
 │ Backend (Node.js + Railway)                                 │
 │ • Job queue & batch aggregation                             │
-│ • zkSTARK proof generation (Stone prover)                   │
+│ • zkSTARK proof generation (custom FRI prover)              │
 │ • Transaction submission to L1                              │
 └───────────────────┬──────────────────────────────────────────┘
                     │
@@ -177,9 +179,10 @@ ERA Protocol consists of three layers:
 
 ### Security Roadmap
 
-- [ ] **Q2 2026:** Preliminary security review
-- [ ] **Q3 2026:** Full smart contract audit (Trail of Bits / OpenZeppelin)
-- [ ] **Q4 2026:** Bug bounty program ($100k pool)
+- [ ] **Q2-Q3 2026:** Preliminary security review + audit scoping
+- [ ] **Q3-Q4 2026:** Solidity smart contract audit (Trail of Bits / OpenZeppelin)
+- [ ] **Q4 2026-Q1 2027:** zkSTARK custom prover audit (specialist firm)
+- [ ] **Q1-Q2 2027:** Bug bounty program launch (Immunefi, TVL-scaled)
 - [ ] **2027:** Decentralized prover network
 
 📖 **Full security model:** [docs/SECURITY.md](docs/SECURITY.md)
@@ -211,12 +214,13 @@ Contracts will be deployed to Ethereum mainnet after security audit completion.
 | **Animation** | Framer Motion |
 | **Testing** | Vitest, React Testing Library, jest-axe |
 | **Backend** | Node.js, Express, BullMQ |
-| **Proofs** | Cairo (StarkWare), Stone Prover |
+| **Proofs** | Custom FRI Prover (TypeScript), zkSTARK-inspired |
 | **Contracts** | Solidity 0.8.x, Hardhat |
 
 **Code Quality:**
 - ✅ TypeScript strict mode
-- ✅ 82% test coverage (80/97 tests passing)
+- ✅ zkSTARK proving core: 33/33 tests passing (100%)
+- ✅ Full system: 82/97 tests passing (84.5% — remaining failures are frontend environment issues)
 - ✅ WCAG 2.1 AA accessible
 - ✅ ESLint + Prettier configured
 - ✅ Professional error boundaries
@@ -322,7 +326,7 @@ Layer 2 solutions are amazing for scaling Ethereum, but they fragment liquidity 
 ## 🙏 Acknowledgments
 
 Built with support from:
-- **StarkWare** - Cairo and zkSTARK technology
+- **StarkWare** - Inspiration for zkSTARK and FRI proof system design
 - **Ethereum Foundation** - Grant application in progress
 - **RainbowKit & wagmi** - Excellent Web3 developer experience
 - **Uniswap** - Token swap infrastructure

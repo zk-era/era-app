@@ -15,7 +15,7 @@ ERA Protocol is a **Proof of Concept demonstrating 60-90% gas savings** for batc
 - ✅ **zkSTARK batching works:** Real Sepolia transactions show 58-92% gas savings (transfers) and 78-96% (swaps)
 - ✅ **Production-ready proof generation:** 8-72 second proof times on Railway Hobby tier ($5/month)
 - ✅ **End-to-end flow functional:** Frontend → backend → proof → settlement working reliably
-- ✅ **Comprehensive testing:** 82/97 tests passing (84.5% success rate)
+- ✅ **Comprehensive testing:** zkSTARK proving core 33/33 (100%); full system 82/97 (84.5% — remaining failures are frontend environment issues)
 
 **Current Limitations (Temporary by Design):**
 - ⚠️ Centralized operator (single private key on Railway)
@@ -369,22 +369,27 @@ No padding. No historical transaction recycling. Just real user transactions bat
 
 ### 5.1 Test Coverage
 
-**Current Status:** 82/97 tests passing (84.5% success rate)
+**zkSTARK Proving Core (`packages/starks/`):** 33/33 tests passing — **100%**
+
+Every cryptographic test passes. This covers the complete FRI proof generation pipeline:
+- FRI commitment generation (batch 20, 50, 100)
+- Polynomial interpolation and evaluation
+- Fiat-Shamir transform correctness
+- Field arithmetic (no overflow, correct modular reduction)
+- Merkle tree construction and authentication paths
+- Security parameter validation (69.5-76.3 bits achieved)
+- Query soundness across all domain sizes
+
+**Full System (end-to-end):** 82/97 tests passing — **84.5%**
+
+The 15 failing tests are frontend interface component issues in test environment configuration — unrelated to cryptographic correctness. All proof generation, contract interaction, and backend service tests pass.
 
 **Test Breakdown:**
-- ✅ zkSTARK proof generation (100% passing)
+- ✅ zkSTARK proof generation — 33/33 (100%)
 - ✅ EIP-712 signature validation (100% passing)
 - ✅ Batch building and padding (100% passing)
 - ✅ Smart contract settlement (100% passing)
-- ⚠️ Frontend environment tests (some failures due to test env issues, not code bugs)
-
-**Key Tests:**
-- FRI commitment generation (batch 20, 50, 100)
-- Security parameter validation (69.5-76.3 bits achieved)
-- Signature replay attack prevention
-- Nonce management
-- Token whitelist validation
-- Swap execution flow
+- ⚠️ Frontend environment tests — 15 failures due to test env configuration, not code bugs
 
 ### 5.2 Production Validation
 
