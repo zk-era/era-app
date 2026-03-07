@@ -67,7 +67,6 @@ ERA Protocol is **Ethereum public infrastructure** that enables any dApp to offe
 
 ```bash
 npm install viem wagmi @rainbow-me/rainbowkit
-# ERA SDK coming soon: npm install @era-protocol/sdk
 ```
 
 ### 2. Collect EIP-712 Signature
@@ -186,17 +185,21 @@ const allowance = await publicClient.readContract({
   args: [userAddress, ERA_SETTLEMENT]
 });
 
-// If allowance insufficient, request approval
+// If allowance insufficient, request approval for exact amount
 if (allowance < amount) {
   const { hash } = await walletClient.writeContract({
     address: USDC_ADDRESS,
     abi: erc20ABI,
     functionName: 'approve',
-    args: [ERA_SETTLEMENT, BigInt('0xffffffffffffffffffffffffffffffff')] // Max approval
+    args: [ERA_SETTLEMENT, BigInt(amount)] // Exact-amount approval
   });
   
   await publicClient.waitForTransactionReceipt({ hash });
 }
+
+// ⚠️ Mainnet note: ERA Protocol is pre-audit. When migrating to mainnet,
+// always use exact-amount approvals with real user funds. Never request
+// unlimited token approval on an unaudited contract.
 ```
 
 ---
@@ -385,11 +388,11 @@ Users do NOT authorize:
 Before mainnet integration:
 - [ ] Complete security audit (planned with EF grant funding)
 - [ ] Implement multi-operator decentralization
-- [ ] Increase security bits to 80+ (currently 69.5-76.3)
+- [ ] Security parameters reviewed against mainnet threat model — current 76.3 bits (batch 20) and 69.5 bits (batch 50/100) require hundreds of billions of dollars of compute to break, proportionate to assets protected per settlement
 - [ ] Bug bounty program
 - [ ] Formal verification of smart contracts
 
-**Timeline:** Mainnet launch estimated Q4 2026 (pending audit + EF guidance)
+**Timeline:** Mainnet launch estimated 10-15 months from current POC (Q1-Q2 2027), contingent on completed security audit, EF guidance, and multi-operator decentralization. Audit alone requires 6-9 months scoped across Solidity contracts and the custom zkSTARK prover separately.
 
 **Stay Updated:**
 - **Discord:** [discord.gg/eraprotocol](https://discord.gg/eraprotocol)

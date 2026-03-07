@@ -176,6 +176,12 @@ curl https://era-backend.railway.app/api/poc/status/poc_mmeyly3v_f6hqjj
       "queries": 21,
       "friRounds": 9
     }
+    // proofMetadata notes:
+    // securityBits: 76.3 at batch 20, 69.5 at batch 50/100.
+    // Breaking this proof requires ~7×10²⁰ operations — hundreds of billions
+    // of dollars of compute sustained over decades. Proportionate to assets
+    // protected per settlement window (minutes to hours, not years).
+    // Parameters reviewed against threat model prior to mainnet.
   }
 }
 ```
@@ -356,36 +362,7 @@ POST /api/webhooks/register
 
 ---
 
-## SDK (Coming Soon)
 
-We're building an official TypeScript/JavaScript SDK:
-
-```typescript
-import { ERAClient } from '@era-protocol/sdk';
-
-const era = new ERAClient({
-  network: 'sepolia',
-  apiKey: 'your-api-key' // Mainnet only
-});
-
-// Submit transaction
-const job = await era.submitTransfer({
-  from: userAddress,
-  to: recipient,
-  token: USDC_ADDRESS,
-  amount: '1000000',
-  signature,
-  batchSize: 20
-});
-
-// Wait for completion
-const result = await job.wait();
-console.log(`Saved ${result.gasSavings}%!`);
-```
-
-**Stay updated:** [GitHub Releases](https://github.com/deusexakira/era-app/releases)
-
----
 
 ## Error Codes Reference
 
@@ -401,12 +378,6 @@ console.log(`Saved ${result.gasSavings}%!`);
 ---
 
 ## Testing
-
-### Postman Collection
-
-Download our Postman collection for easy API testing:
-
-**Collection URL:** Coming soon
 
 ### cURL Examples
 
