@@ -66,7 +66,7 @@ This pricing model excludes:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Result:** Each user pays only their share of the batch cost → **60-77% cheaper!**
+**Result:** Each user pays only their share of the batch cost → **59-96% cheaper!**
 
 ---
 
