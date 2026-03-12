@@ -16,9 +16,15 @@
   border-width: 0;
 }
 
+/**
+ * Force Dark Mode Only
+ * ERA Protocol does not support light mode - dark theme is always applied
+ * regardless of user's system preferences.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  color-scheme: dark; /* Tells browser to use dark mode for native controls */
 }
 
 @theme inline {
@@ -51,13 +57,6 @@
   --radius-era-md: 0.75rem;   /* 12px */
   --radius-era-lg: 1rem;      /* 16px - our standard */
   --radius-era-xl: 1.5rem;    /* 24px */
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 html,
