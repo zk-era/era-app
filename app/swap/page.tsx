@@ -77,7 +77,7 @@ export default function SwapPage() {
   const comparison = null; // SwapConfirmStep will fetch its own quote
 
   return (
-    <div className="flex w-full flex-col items-center self-start pt-20">
+    <>
       <SepoliaLimitationBanner />
       <MotionConfig transition={{ type: "spring", stiffness: 400, damping: 35 }}>
         <div className="flex w-full max-w-[400px] flex-col px-4">
@@ -110,6 +110,6 @@ export default function SwapPage() {
           </AnimatePresence>
         </div>
       </MotionConfig>
-    </div>
+    </>
   );
 }
