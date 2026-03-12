@@ -22,7 +22,7 @@ const MOBILE_USER_AGENT_PATTERNS = [
   /tablet/i,
 ];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const userAgent = request.headers.get("user-agent") || "";
   
   // Check if user agent matches mobile patterns
