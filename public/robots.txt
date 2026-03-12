@@ -1,0 +1,8 @@
+# ERA Protocol - Robots Configuration
+# Allow all bots to crawl desktop version
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://demo.zkera.xyz/sitemap.xml

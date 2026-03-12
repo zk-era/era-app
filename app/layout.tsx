@@ -7,7 +7,7 @@ import { Toaster } from "sileo";
 import { Web3Provider } from "@/components/Web3Provider";
 import { WalletButton } from "@/components/WalletButton";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { Footer } from "@/components/Footer";
+import { MobileGate } from "@/components/MobileGate";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -47,8 +47,29 @@ const openRunde = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "ERA Protocol",
-  description: "Ethereum transactions at a fraction of the cost",
+  metadataBase: new URL('https://demo.zkera.xyz'),
+  title: {
+    default: "ERA Protocol - Ethereum Transactions at a Fraction of the Cost",
+    template: "%s | ERA Protocol",
+  },
+  description: "Save up to 96% on Ethereum transaction fees. Send tokens and swap assets without the high cost. Desktop testnet now available.",
+  keywords: ["ethereum", "gas fees", "transaction costs", "crypto", "defi"],
+  authors: [{ name: "ERA Protocol" }],
+  creator: "ERA Protocol",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://demo.zkera.xyz",
+    title: "ERA Protocol - Ethereum Transactions at a Fraction of the Cost",
+    description: "Save up to 96% on Ethereum transaction fees. Send tokens and swap assets without the high cost.",
+    siteName: "ERA Protocol",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ERA Protocol - Save up to 96% on Gas Fees",
+    description: "Ethereum transactions at a fraction of the cost. Desktop testnet now available.",
+    creator: "@ERAProtocol",
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -57,6 +78,17 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 /**
@@ -82,37 +114,36 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${openRunde.variable} antialiased font-open-runde bg-black text-white`}
       >
-        <Web3Provider>
-          <Toaster 
-            position="top-center" 
-            options={{
-              fill: "#1a1a1a",
-              styles: {
-                title: "color: #fff",
-                description: "color: #7b7b7b",
-              },
-            }}
-          />
-          <Link href="/" aria-label="ERA Protocol home" className="fixed left-6 top-6 z-50 transition-opacity hover:opacity-80">
-            <Image
-              src="/era-logo.svg"
-              alt=""
-              aria-hidden="true"
-              width={24}
-              height={24}
-              priority
+        <MobileGate>
+          <Web3Provider>
+            <Toaster 
+              position="top-center" 
+              options={{
+                fill: "#1a1a1a",
+                styles: {
+                  title: "color: #fff",
+                  description: "color: #7b7b7b",
+                },
+              }}
             />
-          </Link>
-          <div className="fixed right-6 top-6 z-50">
-            <WalletButton />
-          </div>
-          <div className="flex min-h-dvh w-full flex-col">
-            <div className="flex flex-1 items-center justify-center">
+            <Link href="/" aria-label="ERA Protocol home" className="fixed left-6 top-6 z-50 transition-opacity hover:opacity-80">
+              <Image
+                src="/era-logo.svg"
+                alt=""
+                aria-hidden="true"
+                width={24}
+                height={24}
+                priority
+              />
+            </Link>
+            <div className="fixed right-6 top-6 z-50">
+              <WalletButton />
+            </div>
+            <div className="flex min-h-dvh w-full items-center justify-center">
               <ErrorBoundary>{children}</ErrorBoundary>
             </div>
-            <Footer />
-          </div>
-        </Web3Provider>
+          </Web3Provider>
+        </MobileGate>
       </body>
     </html>
   );

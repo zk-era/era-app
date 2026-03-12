@@ -100,7 +100,7 @@ export default function SendPage() {
 
   return (
     <MotionConfig transition={{ type: "spring", stiffness: 400, damping: 35 }}>
-      <div className="flex w-full max-w-[400px] flex-col px-4">
+      <div className="flex w-full max-w-[400px] flex-col self-start px-4 pt-20">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={step}

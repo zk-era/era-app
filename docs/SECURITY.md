@@ -665,9 +665,9 @@ We're open-sourcing the **integration layer** so any wallet, dApp, or protocol c
 
 | Component | Repository | Purpose |
 |-----------|------------|---------|
-| **SDK** | `era-prover` | TypeScript SDK for dApp integration |
 | **Smart Contracts** | `era-prover` | ERAVerifier.sol, ERASettlement.sol (verified on Etherscan) |
-| **ABIs & Types** | `era-prover` | Contract interfaces, EIP-712 type definitions |
+| **EIP-712 Types** | `era-prover` | Type definitions for signing transfer and swap intents |
+| **ABIs** | `era-prover` | Contract interfaces for dApp integration |
 | **Integration Examples** | `era-prover` | Reference implementations for wallets/dApps |
 
 **What Remains Proprietary:**
@@ -682,7 +682,7 @@ We're open-sourcing the **integration layer** so any wallet, dApp, or protocol c
 
 This mirrors successful infrastructure projects like Infura and Alchemy—**open standards, proprietary operations**:
 
-- ✅ **Developers get:** Open SDK, verified contracts, clear integration path
+- ✅ **Developers get:** Open contracts, EIP-712 types, verified on-chain data, clear integration path
 - ✅ **Users get:** Trustless verification (proofs verified on-chain by open contracts)
 - ✅ **ERA gets:** Sustainable business model to maintain and improve infrastructure
 - ✅ **Ecosystem gets:** Public good infrastructure with accountable operators
@@ -691,8 +691,8 @@ This mirrors successful infrastructure projects like Infura and Alchemy—**open
 
 | Layer | What Developers Use |
 |-------|---------------------|
-| **Smart Contracts** | Standard EIP-712 signatures (wallet-agnostic) |
-| **SDK** | `@era-prover/sdk` - TypeScript/JavaScript |
+| **Smart Contracts** | ERAVerifier.sol, ERASettlement.sol (open source, verified on Etherscan) |
+| **EIP-712 Types** | Type definitions for signing transfer and swap intents |
 | **API** | REST endpoints for batch submission |
 | **Integration** | Drop-in to existing dApps (no architectural changes) |
 

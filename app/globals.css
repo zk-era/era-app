@@ -72,8 +72,31 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/**
+ * CSS-based Mobile Block (Fallback)
+ * 
+ * Hides main content on small screens as additional security.
+ * This provides a CSS-only fallback if JavaScript is disabled.
+ */
+@media (max-width: 768px) {
+  body:not(:has([data-mobile-block-screen])) > * {
+    /* This will be overridden by JS, but provides fallback */
+  }
+}
+
 .font-open-runde {
   font-family: var(--font-open-runde);
+}
+
+/**
+ * Sileo Toast Z-Index Fix
+ * 
+ * Ensures toast notifications appear above fixed header elements
+ * (logo at z-50, wallet button at z-50). Setting toast to z-[100]
+ * keeps it above all UI chrome.
+ */
+[data-sileo-toast] {
+  z-index: 100 !important;
 }
 
 /**

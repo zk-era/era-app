@@ -82,7 +82,7 @@ export function AddressStep({
           aria-label="Recipient address or ENS name"
           aria-describedby={recipient && !isValid ? "address-error" : undefined}
           aria-invalid={recipient && !isValid ? true : undefined}
-          className="flex-1 bg-transparent text-sm font-medium outline-none placeholder:font-medium placeholder:text-[var(--color-era-tertiary)] text-ellipsis overflow-hidden"
+          className="flex-1 bg-transparent text-base font-medium outline-none placeholder:font-medium placeholder:text-[var(--color-era-tertiary)] text-ellipsis overflow-hidden"
           autoFocus
         />
         

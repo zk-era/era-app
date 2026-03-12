@@ -91,7 +91,7 @@ export function SwapConfirmStep({
   const savingsUSD = directCostUSD - eraCostUSD;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 pt-16">
       {/* Screen reader announcements */}
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {loading && "Loading gas estimate"}

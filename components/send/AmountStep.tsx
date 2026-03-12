@@ -189,7 +189,7 @@ export function AmountStep({
               className="flex items-center gap-2 text-sm text-[var(--color-era-secondary] transition-colors hover:text-white)]"
             >
               {isUsdMode ? (
-                <span aria-hidden="true">
+                <span className="flex items-center gap-1" aria-hidden="true">
                   {selectedToken.logoURI && (
                     <Image
                       src={selectedToken.logoURI}
@@ -202,7 +202,7 @@ export function AmountStep({
                   <NumberFlow value={tokenValue} />
                 </span>
               ) : (
-                <span aria-hidden="true">
+                <span className="flex items-center" aria-hidden="true">
                   <span>$</span>
                   <NumberFlow value={usdValue} />
                 </span>

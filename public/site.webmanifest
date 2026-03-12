@@ -1,6 +1,9 @@
 {
-  "name": "era protocol",
-  "short_name": "era",
+  "name": "ERA Protocol - Save on Gas Fees",
+  "short_name": "ERA Protocol",
+  "description": "zkSTARK-powered batch settlements on Ethereum L1",
+  "start_url": "/",
+  "scope": "/",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -17,5 +20,6 @@
   ],
   "theme_color": "#0a0a0a",
   "background_color": "#0a0a0a",
-  "display": "standalone"
+  "display": "standalone",
+  "orientation": "portrait"
 }

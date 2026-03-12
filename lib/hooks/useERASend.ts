@@ -3,6 +3,7 @@
 import { useState, useCallback, createElement } from "react";
 import { useAccount, useSignTypedData, usePublicClient, useWalletClient } from "wagmi";
 import { useChainInfo } from "@/lib/context/ChainContext";
+import { useRouter } from "next/navigation";
 import { sileo } from "sileo";
 import { eraApi, POCJobStatus, POCResult } from "@/lib/api/era";
 import { parseAbi, maxUint256 } from "viem";
@@ -98,6 +99,7 @@ export function useERASend(options: UseERASendOptions = {}): UseERASendResult {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
   const { addTransaction } = useTransactionHistory();
+  const router = useRouter();
 
   const [status, setStatus] = useState<SendStatus>("idle");
   const [jobStatus, setJobStatus] = useState<POCJobStatus | null>(null);
@@ -257,10 +259,10 @@ export function useERASend(options: UseERASendOptions = {}): UseERASendResult {
         setStatus("submitting");
         sileo.info({ 
           title: "Submitting to ERA...",
-          icon: createElement(PulsatingLoader, { color: "#a78bfa" }), // Purple - sending signed data
+          icon: createElement(PulsatingLoader, { color: "#8b5cf6" }), // Purple - sending signed data
           duration: null, // Stay visible
           styles: {
-            title: "text-[#a78bfa]!" // Match animation color
+            title: "text-[#8b5cf6]!" // Match animation color
           }
         });
         const submitResponse = await eraApi.submitTransaction({
@@ -294,10 +296,10 @@ export function useERASend(options: UseERASendOptions = {}): UseERASendResult {
             if (jobStatus.status === "generating_proof") {
               sileo.info({ 
                 title: "Generating ZK proof...",
-                icon: createElement(PulsatingLoader, { color: "#ec4899" }), // Pink - intense cryptographic work
+                icon: createElement(PulsatingLoader, { color: "#8b5cf6" }), // Purple - intense cryptographic work
                 duration: null, // Stay visible
                 styles: {
-                  title: "text-[#ec4899]!" // Match animation color
+                  title: "text-[#8b5cf6]!" // Match animation color
                 }
               });
             } else if (jobStatus.status === "settling") {
@@ -348,7 +350,9 @@ export function useERASend(options: UseERASendOptions = {}): UseERASendResult {
             }),
             button: {
               title: "View Details",
-              onClick: () => window.location.assign(`/send/result/${submitResponse.jobId}`),
+              onClick: () => {
+                router.push(`/send/result/${submitResponse.jobId}`);
+              },
             },
             styles: {
               button: "bg-white! text-black! font-semibold!",
@@ -409,7 +413,7 @@ export function useERASend(options: UseERASendOptions = {}): UseERASendResult {
         });
       }
     },
-    [address, chainId, chainIcon, chainName, publicClient, walletClient, signTypedDataAsync, addTransaction, onComplete]
+    [address, chainId, chainIcon, chainName, publicClient, walletClient, signTypedDataAsync, addTransaction, onComplete, router]
   );
 
   return {

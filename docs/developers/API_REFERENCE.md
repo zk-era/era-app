@@ -422,7 +422,6 @@ done
 
 - **Integration Questions:** [Discord](https://discord.gg/eraprotocol)
 - **Bug Reports:** [GitHub Issues](https://github.com/deusexakira/era-app/issues)
-- **API Status:** [status.eraprotocol.xyz](https://status.eraprotocol.xyz) (coming soon)
 
 ---
 

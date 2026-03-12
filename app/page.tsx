@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { Footer } from "@/components/Footer";
 
 /**
  * Brand Colors (oklch)
@@ -36,9 +37,11 @@ const actions = [
 
 export default function Home() {
   return (
-    <div className="flex w-full max-w-[400px] flex-col items-center gap-8 px-4">
-      <div className="flex w-full flex-col gap-3">
-        {actions.map((action, index) => (
+    <div className="flex min-h-dvh w-full flex-col">
+      <div className="flex flex-1 items-center justify-center">
+        <div className="flex w-full max-w-[400px] flex-col items-center gap-8 px-4">
+          <div className="flex w-full flex-col gap-3">
+            {actions.map((action, index) => (
           <motion.div
             key={action.label}
             initial={{ opacity: 0, y: 20 }}
@@ -83,8 +86,11 @@ export default function Home() {
               </div>
             </Link>
           </motion.div>
-        ))}
+            ))}
+          </div>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }

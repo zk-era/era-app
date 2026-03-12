@@ -106,12 +106,12 @@ Validated on Sepolia testnet (calculations at 30 gwei, $2,500 ETH):
 
 ### Live Demo (Sepolia Testnet)
 
-🔗 **[app.eraprotocol.xyz](https://app.eraprotocol.xyz)** *(Coming Soon)*
+🔗 **[demo.zkera.xyz](https://demo.zkera.xyz)**
 
 **Quick Start:**
 1. Connect wallet (MetaMask, Coinbase, WalletConnect)
 2. Get Sepolia ETH from [faucet](https://sepoliafaucet.com/)
-3. Get test tokens from [ERA Faucet](https://app.eraprotocol.xyz/faucet)
+3. Get test tokens from ERA Faucet
 4. Send or swap tokens → see your gas savings!
 
 ### For Developers
@@ -256,7 +256,6 @@ Contracts will be deployed to Ethereum mainnet after security audit completion.
 - [ ] Mainnet deployment
 
 ### Q3 2026 - Adoption
-- [ ] Developer SDK release
 - [ ] 5+ dApp integrations
 - [ ] Mobile-optimized UI
 - [ ] Gas savings dashboard
@@ -316,10 +315,9 @@ Layer 2 solutions are amazing for scaling Ethereum, but they fragment liquidity 
 
 ## 📞 Contact & Community
 
-- **Website:** [eraprotocol.xyz](https://eraprotocol.xyz) *(Coming Soon)*
+- **Website:** [demo.zkera.xyz](https://demo.zkera.xyz)
 - **Twitter:** [@ERAProtocol](https://twitter.com/ERAProtocol)
 - **Discord:** [Join our community](https://discord.gg/eraprotocol)
-- **Email:** hello@eraprotocol.xyz
 
 ---
 

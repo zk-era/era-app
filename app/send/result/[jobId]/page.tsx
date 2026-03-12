@@ -11,11 +11,38 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useTransactionHistory } from "@/lib/hooks/useTransactionHistory";
-import { Send, Check, ExternalLink, Copy, Info, Fuel, Sparkles, FileText, Link2, Navigation, Wallet } from "lucide-react";
+import { Send, Check, ExternalLink, Copy, Info, Fuel, Sparkles, FileText, Navigation, Wallet } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { useCallback } from "react";
 import { sileo } from "sileo";
 import { formatGasUsd } from "@/lib/utils/format";
+
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: [0.22, 1, 0.36, 1] as const,
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
+  },
+};
 
 export default function TransactionResultPage() {
   const params = useParams();
@@ -33,7 +60,12 @@ export default function TransactionResultPage() {
   if (!transaction) {
     return (
       <main className="flex min-h-dvh flex-col items-center justify-center p-4">
-        <div className="flex w-full max-w-[400px] flex-col items-center gap-4 px-4 text-center">
+        <motion.div 
+          className="flex w-full max-w-[400px] flex-col items-center gap-4 px-4 text-center"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        >
           <Info className="size-12 text-[#7b7b7b]" />
           <h1 className="text-xl font-semibold text-white">Transaction Not Found</h1>
           <p className="text-sm text-[#7b7b7b]">
@@ -45,12 +77,12 @@ export default function TransactionResultPage() {
           >
             Back to Send
           </button>
-        </div>
+        </motion.div>
       </main>
     );
   }
 
-  const { tokenSymbol, tokenLogo, amount, usdValue, recipient, sender, chainName, chainIcon, result, timestamp } = transaction;
+  const { tokenSymbol, tokenLogo, amount, usdValue, recipient, sender, result, timestamp } = transaction;
 
   const truncatedRecipient = recipient.endsWith(".eth")
     ? recipient
@@ -75,9 +107,14 @@ export default function TransactionResultPage() {
 
   return (
     <main className="flex min-h-dvh w-full flex-col items-center justify-center">
-      <div className="flex w-full max-w-[400px] flex-col gap-5 px-4">
+      <motion.div 
+        className="flex w-full max-w-[400px] flex-col gap-5 px-4"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
         {/* Transaction Header */}
-        <div className="flex items-center gap-3">
+        <motion.div className="flex items-center gap-3" variants={itemVariants}>
           <div className="relative">
             {tokenLogo ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -101,10 +138,10 @@ export default function TransactionResultPage() {
             <p className="text-base font-semibold text-white">Sent to {truncatedRecipient}</p>
             <p className="text-sm text-[#7b7b7b]">{formattedDate} · {formattedTime}</p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Amount Display */}
-        <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-dashed border-[#303030] px-4 py-4">
+        <motion.div className="flex flex-col items-center gap-1.5 rounded-2xl border border-dashed border-[#303030] px-4 py-4" variants={itemVariants}>
           <p className="text-4xl font-bold text-white">${usdValue}</p>
           <div className="flex items-center gap-1.5">
             {tokenLogo ? (
@@ -123,10 +160,10 @@ export default function TransactionResultPage() {
             )}
             <p className="text-base font-medium text-[#3b82f6]">{amount} {tokenSymbol}</p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Status Badge */}
-        <div className="flex items-center justify-between rounded-2xl bg-[#1a1a1a] px-4 py-3">
+        <motion.div className="flex items-center justify-between rounded-2xl bg-[#1a1a1a] px-4 py-3" variants={itemVariants}>
           <div className="flex items-center gap-2.5">
             <div className="flex size-5 items-center justify-center rounded-full bg-[#3b82f6]">
               <Check className="size-3 text-white" strokeWidth={3} />
@@ -136,10 +173,10 @@ export default function TransactionResultPage() {
           <span className="text-sm text-[#7b7b7b]">
             {formattedDate} · <span className="font-semibold text-white">{formattedTime}</span>
           </span>
-        </div>
+        </motion.div>
 
         {/* GENERAL Section */}
-        <div className="flex flex-col divide-y divide-[#2a2a2a] rounded-2xl bg-[#1a1a1a] p-4">
+        <motion.div className="flex flex-col divide-y divide-[#2a2a2a] rounded-2xl bg-[#1a1a1a] p-4" variants={itemVariants}>
           <h2 className="pb-3 text-xs font-semibold uppercase tracking-wider text-[#7b7b7b]">General</h2>
           <div className="flex flex-col divide-y divide-[#2a2a2a]">
             <div className="py-3">
@@ -155,7 +192,7 @@ export default function TransactionResultPage() {
                 </div>
               </DetailRow>
             </div>
-            <div className="py-3">
+            <div className="py-3 last:pb-0">
               <DetailRow icon={FileText} label="Settlement TX">
                 <button
                   onClick={() => window.open(result.etherscanUrl, "_blank")}
@@ -166,30 +203,11 @@ export default function TransactionResultPage() {
                 </button>
               </DetailRow>
             </div>
-            <div className="py-3 last:pb-0">
-              <DetailRow icon={Link2} label="Chain">
-                <div className="flex items-center gap-1.5">
-                  {chainIcon ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={chainIcon}
-                      alt={chainName}
-                      width={16}
-                      height={16}
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <div className="size-4 rounded-full bg-[#627eea]" />
-                  )}
-                  <span className="text-sm font-medium text-white">{chainName}</span>
-                </div>
-              </DetailRow>
-            </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* TOKEN TRANSFERS Section */}
-        <div className="flex flex-col divide-y divide-[#2a2a2a] rounded-2xl bg-[#1a1a1a] p-4">
+        <motion.div className="flex flex-col divide-y divide-[#2a2a2a] rounded-2xl bg-[#1a1a1a] p-4" variants={itemVariants}>
           <h2 className="pb-3 text-xs font-semibold uppercase tracking-wider text-[#7b7b7b]">Token Transfers</h2>
           <div className="flex flex-col divide-y divide-[#2a2a2a]">
             <div className="py-3">
@@ -215,18 +233,18 @@ export default function TransactionResultPage() {
               </DetailRow>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Actions */}
-        <div className="pb-4">
+        <motion.div className="pb-4" variants={itemVariants}>
           <button
             onClick={() => router.push("/send")}
             className="w-full rounded-xl bg-white py-3.5 font-semibold text-black transition-opacity hover:opacity-90"
           >
             Done
           </button>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </main>
   );
 }

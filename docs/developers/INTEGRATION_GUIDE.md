@@ -407,7 +407,6 @@ Before mainnet integration:
 
 - **Discord:** [Join our community](https://discord.gg/eraprotocol)
 - **GitHub Issues:** [Report bugs or request features](https://github.com/deusexakira/era-app/issues)
-- **Email:** developers@eraprotocol.xyz (coming soon)
 
 ### Contribute
 

@@ -284,9 +284,9 @@ export function useERASwap(options: UseERASwapOptions = {}): UseERASwapResult {
         setStatus("submitting");
         sileo.info({ 
           title: "Submitting to ERA...",
-          icon: createElement(PulsatingLoader, { color: "#a78bfa" }),
+          icon: createElement(PulsatingLoader, { color: "#8b5cf6" }),
           duration: null,
-          styles: { title: "text-[#a78bfa]!" }
+          styles: { title: "text-[#8b5cf6]!" }
         });
         
         const submitResponse = await eraApi.submitTransaction({
@@ -321,9 +321,9 @@ export function useERASwap(options: UseERASwapOptions = {}): UseERASwapResult {
             if (jobStatus.status === "generating_proof") {
               sileo.info({ 
                 title: "Generating ZK proof...",
-                icon: createElement(PulsatingLoader, { color: "#ec4899" }),
+                icon: createElement(PulsatingLoader, { color: "#8b5cf6" }),
                 duration: null,
-                styles: { title: "text-[#ec4899]!" }
+                styles: { title: "text-[#8b5cf6]!" }
               });
             } else if (jobStatus.status === "settling") {
               sileo.info({ 

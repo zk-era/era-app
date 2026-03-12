@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function ReceivePage() {
   return (
-    <div className="flex w-full max-w-[400px] flex-col gap-6 px-4">
+    <div className="flex w-full max-w-[400px] flex-col self-start gap-6 px-4 pt-20">
       {/* Header */}
       <div className="flex w-full items-center">
         <Link

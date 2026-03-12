@@ -106,7 +106,7 @@ export function TokenSelector({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     aria-label="Search tokens by name or address"
-                    className="w-full rounded-xl bg-[#222] py-2 pl-10 pr-3 text-sm outline-none placeholder:text-white/30 focus:ring-2 focus:ring-white/10"
+                    className="w-full rounded-xl bg-[#222] py-2 pl-10 pr-3 text-base outline-none placeholder:text-white/30 focus:ring-2 focus:ring-white/10"
                   />
                 </div>
               </div>
