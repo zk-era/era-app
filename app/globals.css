@@ -20,11 +20,28 @@
  * Force Dark Mode Only
  * ERA Protocol does not support light mode - dark theme is always applied
  * regardless of user's system preferences.
+ * 
+ * Multi-layer dark mode enforcement:
+ * 1. CSS color-scheme on :root and html
+ * 2. HTML element className="dark"
+ * 3. Metadata themeColor and colorScheme
+ * 4. Inline style on html element
  */
-:root {
+:root,
+html {
   --background: #0a0a0a;
   --foreground: #ededed;
-  color-scheme: dark; /* Tells browser to use dark mode for native controls */
+  color-scheme: dark !important; /* Force dark for native controls */
+}
+
+/* Prevent any light mode from being applied */
+:root[data-theme],
+html[data-theme],
+html.light,
+:root.light {
+  --background: #0a0a0a !important;
+  --foreground: #ededed !important;
+  color-scheme: dark !important;
 }
 
 @theme inline {

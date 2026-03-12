@@ -56,6 +56,8 @@ export const metadata: Metadata = {
   keywords: ["ethereum", "gas fees", "transaction costs", "crypto", "defi"],
   authors: [{ name: "ERA Protocol" }],
   creator: "ERA Protocol",
+  themeColor: "#0a0a0a", // Force dark theme color for mobile browsers
+  colorScheme: "dark", // Force dark color scheme for browser UI
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -110,7 +112,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark" style={{ colorScheme: 'dark' }}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${openRunde.variable} antialiased font-open-runde bg-black text-white`}
       >
