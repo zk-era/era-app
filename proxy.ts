@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Next.js Middleware - Mobile Device Blocking
+ * Next.js Proxy - Mobile Device Blocking
  * 
  * This runs at the edge before any page loads, providing
  * the strongest level of mobile blocking. Even if JavaScript
